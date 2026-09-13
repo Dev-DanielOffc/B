@@ -1,0 +1,1442 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MessagesChat</title>
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+:root {
+  --bg-main: #ffffff;
+  --bg-card: #ffffff;
+  --bg-hover: #f3f4f6;
+  --bg-input: #f2f4f7;
+  --border-color: #eeeeee;
+  --border-input: #e6e8ec;
+  --text-main: #1f2937;
+  --text-sub: #6b7280;
+  --text-muted: #9ca3af;
+  --accent: #2563eb;
+  --accent-soft: rgba(37, 99, 235, 0.12);
+  --overlay-bg: #ffffff;
+}
+@media (prefers-color-scheme: dark) {
+  :root.theme-system {
+    --bg-main: #111827;
+    --bg-card: #1f2937;
+    --bg-hover: #374151;
+    --bg-input: #1f2937;
+    --border-color: #374151;
+    --border-input: #374151;
+    --text-main: #f9fafb;
+    --text-sub: #9ca3af;
+    --text-muted: #6b7280;
+    --accent: #3b82f6;
+    --accent-soft: rgba(59, 130, 246, 0.18);
+    --overlay-bg: #111827;
+  }
+}
+:root.theme-dark {
+  --bg-main: #111827;
+  --bg-card: #1f2937;
+  --bg-hover: #374151;
+  --bg-input: #1f2937;
+  --border-color: #374151;
+  --border-input: #374151;
+  --text-main: #f9fafb;
+  --text-sub: #9ca3af;
+  --text-muted: #6b7280;
+  --accent: #3b82f6;
+  --accent-soft: rgba(59, 130, 246, 0.18);
+  --overlay-bg: #111827;
+}
+:root.theme-light {
+  --bg-main: #ffffff;
+  --bg-card: #ffffff;
+  --bg-hover: #f3f4f6;
+  --bg-input: #f2f4f7;
+  --border-color: #eeeeee;
+  --border-input: #e6e8ec;
+  --text-main: #1f2937;
+  --text-sub: #6b7280;
+  --text-muted: #9ca3af;
+  --accent: #2563eb;
+  --accent-soft: rgba(37, 99, 235, 0.12);
+  --overlay-bg: #ffffff;
+}
+html, body {
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  transition: background-color 0.2s, color 0.2s;
+}
+.screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100dvh;
+  display: none;
+  flex-direction: column;
+  background-color: var(--bg-main);
+  overflow: hidden;
+}
+.screen.active {
+  display: flex;
+}
+.screen.slide-in {
+  animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.splash {
+  background-color: #000000;
+  align-items: center;
+  justify-content: center;
+}
+.splash.active {
+  display: flex;
+}
+.welcome-top {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+.welcome-image {
+  width: 100%;
+  max-width: 320px;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 20px;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: pointer;
+}
+.welcome-image:active {
+  transform: scale(0.95);
+}
+.welcome-bottom {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 16px;
+}
+.welcome-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.welcome-text {
+  font-size: 15px;
+  color: var(--text-sub);
+  line-height: 1.5;
+  max-width: 340px;
+}
+.dots {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0 16px 0;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--border-color);
+  transition: all 0.3s;
+}
+.dot.active {
+  background-color: var(--accent);
+  transform: scale(1.3);
+}
+.btn-primary {
+  width: 100%;
+  max-width: 340px;
+  padding: 16px;
+  border-radius: 16px;
+  border: none;
+  background-color: var(--accent);
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-primary:active {
+  transform: scale(0.97);
+}
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-secondary {
+  width: 100%;
+  max-width: 340px;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  background-color: transparent;
+  color: var(--text-main);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.15s, background 0.15s;
+}
+.btn-secondary:active {
+  transform: scale(0.97);
+  background-color: var(--bg-hover);
+}
+.screen-header {
+  height: 60px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+.back-btn {
+  background: none;
+  border: none;
+  color: var(--text-main);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 50%;
+}
+.back-btn svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+.screen-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.screen-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.screen-footer {
+  padding: 16px 20px 24px 20px;
+  flex-shrink: 0;
+}
+.info-text {
+  font-size: 14px;
+  color: var(--text-sub);
+  line-height: 1.5;
+  text-align: center;
+}
+.permission-icon {
+  width: 80px;
+  height: 80px;
+  margin: 40px auto 24px auto;
+  border-radius: 24px;
+  background-color: var(--accent-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.permission-icon svg {
+  width: 40px;
+  height: 40px;
+  fill: var(--accent);
+}
+.permission-title {
+  font-size: 20px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 8px;
+}
+.permission-text {
+  font-size: 14px;
+  color: var(--text-sub);
+  text-align: center;
+  line-height: 1.5;
+}
+.country-selector {
+  width: 100%;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-input);
+  color: var(--text-main);
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: border-color 0.2s;
+}
+.country-selector:active {
+  border-color: var(--accent);
+}
+.country-selector-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.country-flag {
+  font-size: 24px;
+  line-height: 1;
+}
+.country-code {
+  font-size: 16px;
+  font-weight: 600;
+}
+.country-name {
+  font-size: 13px;
+  color: var(--text-sub);
+  margin-top: 2px;
+}
+.input-wrapper {
+  width: 100%;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-input);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: border-color 0.2s;
+}
+.input-wrapper:focus-within {
+  border-color: var(--accent);
+}
+.input-prefix {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-sub);
+  flex-shrink: 0;
+}
+.input-field {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-main);
+  font-size: 16px;
+  font-family: inherit;
+  -webkit-user-select: text;
+  user-select: text;
+  min-width: 0;
+}
+.input-field::placeholder {
+  color: var(--text-muted);
+}
+.country-dropdown {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100dvh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s;
+}
+.country-dropdown.show {
+  display: flex;
+}
+.country-sheet {
+  width: 100%;
+  max-width: 500px;
+  max-height: 80dvh;
+  background-color: var(--bg-card);
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.country-sheet-header {
+  padding: 20px 24px 16px 24px;
+  border-bottom: 1px solid var(--border-color);
+}
+.country-sheet-title {
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--text-main);
+}
+.country-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+.country-item {
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.country-item:active {
+  background-color: var(--bg-hover);
+}
+.country-item-flag {
+  font-size: 28px;
+}
+.country-item-info {
+  flex: 1;
+}
+.country-item-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+.country-item-code {
+  font-size: 13px;
+  color: var(--text-sub);
+  margin-top: 2px;
+}
+.pin-display {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin: 24px 0;
+}
+.pin-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--border-color);
+  background-color: transparent;
+  transition: all 0.2s;
+}
+.pin-dot.filled {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+.pin-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  max-width: 320px;
+  margin: 0 auto;
+  width: 100%;
+}
+.pin-key {
+  aspect-ratio: 1;
+  border: none;
+  border-radius: 50%;
+  background-color: var(--bg-input);
+  color: var(--text-main);
+  font-size: 24px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pin-key:active {
+  background-color: var(--accent-soft);
+  transform: scale(0.95);
+}
+.pin-key.empty {
+  background-color: transparent;
+  cursor: default;
+}
+.pin-key svg {
+  width: 28px;
+  height: 28px;
+  fill: currentColor;
+}
+.error-text {
+  font-size: 14px;
+  color: #ef4444;
+  text-align: center;
+  min-height: 20px;
+  margin-top: 8px;
+}
+.avatar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 0;
+}
+.avatar-preview {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #002D62, #CE1126);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  border: 3px solid var(--accent);
+  transition: transform 0.15s;
+}
+.avatar-preview:active {
+  transform: scale(0.95);
+}
+.avatar-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.avatar-camera {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid var(--bg-main);
+}
+.avatar-camera svg {
+  width: 18px;
+  height: 18px;
+  fill: #ffffff;
+}
+.field-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-sub);
+  margin-bottom: 6px;
+  margin-left: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.loading-screen {
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+}
+.spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid var(--border-color);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.loading-text {
+  font-size: 15px;
+  color: var(--text-sub);
+  text-align: center;
+}
+.loading-progress {
+  width: 200px;
+  height: 4px;
+  background-color: var(--border-color);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.loading-progress-bar {
+  height: 100%;
+  background-color: var(--accent);
+  width: 0%;
+  transition: width 0.3s linear;
+}
+</style>
+</head>
+<body>
+
+<div class="screen splash active" id="screen-splash"></div>
+
+<div class="screen" id="screen-welcome">
+  <div class="welcome-top">
+    <img src="/assets/welcome.jpg" alt="" class="welcome-image" id="welcomeImage">
+  </div>
+  <div class="welcome-bottom">
+    <div class="welcome-title">Bienvenidos</div>
+    <div class="welcome-text">Estás a punto de iniciar MessagesChat, la app de mensajería creada en la República Dominicana.</div>
+    <div class="dots">
+      <span class="dot active"></span>
+      <span class="dot"></span>
+    </div>
+    <button class="btn-primary" onclick="goToPermissions()">Siguiente</button>
+  </div>
+</div>
+
+<div class="screen" id="screen-permissions">
+  <div class="screen-body">
+    <div class="permission-icon">
+      <svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/></svg>
+    </div>
+    <div class="permission-title">Acceso a archivos</div>
+    <div class="permission-text">MessagesChat necesita una carpeta en tu dispositivo para guardar tus claves de cifrado y preferencias de forma segura. Toca Siguiente y selecciona o crea una carpeta.</div>
+    <div class="dots" style="justify-content:center">
+      <span class="dot"></span>
+      <span class="dot active"></span>
+    </div>
+  </div>
+  <div class="screen-footer">
+    <button class="btn-primary" id="permissionsBtn">Siguiente</button>
+  </div>
+</div>
+
+<div class="screen" id="screen-number">
+  <div class="screen-header">
+    <button class="back-btn" onclick="goToScreen('screen-permissions')">
+      <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+    </button>
+    <div class="screen-title">Tu número</div>
+  </div>
+  <div class="screen-body">
+    <div class="info-text">Elige tu país y tu número de MessagesChat.</div>
+    <div>
+      <div class="field-label">País</div>
+      <button class="country-selector" id="countrySelector" onclick="openCountryDropdown()">
+        <div class="country-selector-content">
+          <span class="country-flag" id="countryFlag">🇩🇴</span>
+          <div>
+            <div class="country-code" id="countryCode">+1 839</div>
+            <div class="country-name" id="countryName">República Dominicana</div>
+          </div>
+        </div>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--text-sub)"><path d="M7 10l5 5 5-5z"/></svg>
+      </button>
+    </div>
+    <div>
+      <div class="field-label">Número</div>
+      <div class="input-wrapper">
+        <span class="input-prefix" id="numberPrefix">+1 839</span>
+        <input type="tel" class="input-field" id="numberInput" placeholder="0000000" inputmode="numeric" autocomplete="off">
+      </div>
+    </div>
+    <button class="btn-secondary" id="noNumberBtn" onclick="requestNewNumber()">No tengo número</button>
+    <div class="error-text" id="numberError"></div>
+  </div>
+  <div class="screen-footer">
+    <button class="btn-primary" id="numberNextBtn">Continuar</button>
+  </div>
+</div>
+
+<div class="screen" id="screen-pin">
+  <div class="screen-header">
+    <button class="back-btn" onclick="goToScreen('screen-number')">
+      <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+    </button>
+    <div class="screen-title" id="pinTitle">Crear PIN</div>
+  </div>
+  <div class="screen-body" style="justify-content:flex-start">
+    <div class="info-text" id="pinInfo">Crea un PIN de 4 dígitos para proteger tu cuenta. Lo necesitarás cada vez que inicies sesión.</div>
+    <div class="pin-display" id="pinDisplay">
+      <span class="pin-dot"></span>
+      <span class="pin-dot"></span>
+      <span class="pin-dot"></span>
+      <span class="pin-dot"></span>
+    </div>
+    <div class="pin-pad" id="pinPad"></div>
+    <div class="error-text" id="pinError"></div>
+  </div>
+</div>
+
+<div class="screen" id="screen-profile">
+  <div class="screen-header">
+    <div class="screen-title">Tu perfil</div>
+  </div>
+  <div class="screen-body">
+    <div class="avatar-section">
+      <div class="avatar-preview" id="avatarPreview" onclick="pickAvatar()">
+        <img src="/assets/profile_photo.jpg" alt="" id="avatarImg">
+        <div class="avatar-camera">
+          <svg viewBox="0 0 24 24"><path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>
+        </div>
+      </div>
+      <input type="file" id="avatarInput" accept="image/*" style="display:none">
+    </div>
+    <div>
+      <div class="field-label">Nombre</div>
+      <div class="input-wrapper">
+        <input type="text" class="input-field" id="displayNameInput" placeholder="Tu nombre" maxlength="50" autocomplete="off">
+      </div>
+    </div>
+    <div class="error-text" id="profileError"></div>
+  </div>
+  <div class="screen-footer">
+    <button class="btn-primary" id="profileNextBtn">Siguiente</button>
+  </div>
+</div>
+
+<div class="screen loading-screen" id="screen-loading">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loadingText">Configurando tu cuenta...</div>
+  <div class="loading-progress">
+    <div class="loading-progress-bar" id="loadingProgress"></div>
+  </div>
+</div>
+
+<div class="country-dropdown" id="countryDropdown">
+  <div class="country-sheet">
+    <div class="country-sheet-header">
+      <div class="country-sheet-title">Elige tu país</div>
+    </div>
+    <div class="country-list" id="countryList"></div>
+  </div>
+</div>
+
+<script>
+const state = {
+  currentScreen: 'splash',
+  selectedCountry: null,
+  countries: [],
+  numberValue: null,
+  tempId: null,
+  pin: '',
+  pinMode: 'create',
+  pendingAvatarUrl: null,
+  fileHandle: null,
+  hasFileSystem: false
+};
+
+const FLAGS = {
+  DO: '🇩🇴', CU: '🇨🇺', PR: '🇵🇷', US: '🇺🇸', UY: '🇺🇾', PY: '🇵🇾',
+  MX: '🇲🇽', PE: '🇵🇪', EC: '🇪🇨', VE: '🇻🇪', CO: '🇨🇴', CL: '🇨🇱',
+  AR: '🇦🇷', BR: '🇧🇷', PT: '🇵🇹', CA: '🇨🇦', HN: '🇭🇳', GT: '🇬🇹',
+  SV: '🇸🇻', NI: '🇳🇮', CR: '🇨🇷', PA: '🇵🇦', BO: '🇧🇴', GY: '🇬🇾',
+  SR: '🇸🇷', BZ: '🇧🇿'
+};
+
+const NAMES = {
+  DO: 'República Dominicana', CU: 'Cuba', PR: 'Puerto Rico', US: 'Estados Unidos',
+  UY: 'Uruguay', PY: 'Paraguay', MX: 'México', PE: 'Perú', EC: 'Ecuador',
+  VE: 'Venezuela', CO: 'Colombia', CL: 'Chile', AR: 'Argentina', BR: 'Brasil',
+  PT: 'Portugal', CA: 'Canadá', HN: 'Honduras', GT: 'Guatemala', SV: 'El Salvador',
+  NI: 'Nicaragua', CR: 'Costa Rica', PA: 'Panamá', BO: 'Bolivia', GY: 'Guyana',
+  SR: 'Surinam', BZ: 'Belice'
+};
+
+function applyTheme(theme) {
+  document.documentElement.classList.remove('theme-system', 'theme-light', 'theme-dark');
+  document.documentElement.classList.add('theme-' + theme);
+}
+
+async function initTheme() {
+  let theme = 'system';
+  if (state.hasFileSystem && state.fileHandle) {
+    try {
+      const fh = await state.fileHandle.getFileHandle('settings.json', { create: true });
+      const file = await fh.getFile();
+      const text = await file.text();
+      if (text) theme = JSON.parse(text).theme || 'system';
+    } catch (e) {}
+  } else {
+    try {
+      const raw = localStorage.getItem('mc_settings.json');
+      if (raw) theme = JSON.parse(raw).theme || 'system';
+    } catch (e) {}
+  }
+  applyTheme(theme);
+}
+
+function goToScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById(id);
+  if (target) {
+    target.classList.add('active');
+    target.classList.remove('slide-in');
+    void target.offsetWidth;
+    target.classList.add('slide-in');
+    state.currentScreen = id;
+  }
+}
+
+document.getElementById('welcomeImage').addEventListener('click', () => {
+  const img = document.getElementById('welcomeImage');
+  img.style.transform = 'scale(0.95)';
+  setTimeout(() => { img.style.transform = ''; }, 200);
+});
+
+function goToPermissions() {
+  goToScreen('screen-permissions');
+}
+
+document.getElementById('permissionsBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('permissionsBtn');
+  btn.disabled = true;
+  btn.textContent = 'Solicitando...';
+  const handle = await requestFileSystem();
+  if (!handle) {
+    btn.disabled = false;
+    btn.textContent = 'Siguiente';
+    window.location.href = 'about:blank';
+    return;
+  }
+  await saveLocal('filehandle.json', { picked: true });
+  btn.disabled = false;
+  btn.textContent = 'Siguiente';
+  await loadCountries();
+  goToScreen('screen-number');
+});
+
+async function requestFileSystem() {
+  if (!('showDirectoryPicker' in window)) {
+    state.hasFileSystem = false;
+    return { fallback: true };
+  }
+  try {
+    const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+    state.fileHandle = handle;
+    state.hasFileSystem = true;
+    return handle;
+  } catch (err) {
+    state.hasFileSystem = false;
+    return null;
+  }
+}
+
+async function saveLocal(filename, data) {
+  const text = JSON.stringify(data, null, 2);
+  if (state.hasFileSystem && state.fileHandle) {
+    try {
+      const fh = await state.fileHandle.getFileHandle(filename, { create: true });
+      const w = await fh.createWritable();
+      await w.write(text);
+      await w.close();
+      return true;
+    } catch (e) {}
+  }
+  try {
+    localStorage.setItem('mc_' + filename, text);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+async function loadLocal(filename, fallback = null) {
+  if (state.hasFileSystem && state.fileHandle) {
+    try {
+      const fh = await state.fileHandle.getFileHandle(filename, { create: true });
+      const file = await fh.getFile();
+      const text = await file.text();
+      if (!text) return fallback;
+      return JSON.parse(text);
+    } catch (e) {}
+  }
+  try {
+    const raw = localStorage.getItem('mc_' + filename);
+    if (!raw) return fallback;
+    return JSON.parse(raw);
+  } catch (e) {
+    return fallback;
+  }
+}
+
+async function loadCountries() {
+  try {
+    const res = await fetch('/api/numbers/countries');
+    const data = await res.json();
+    state.countries = data.countries || [];
+    state.selectedCountry = state.countries.find(c => c.code === 'DO') || state.countries[0];
+    renderCountrySelector();
+    renderCountryList();
+  } catch (err) {
+    state.countries = [];
+  }
+}
+
+function renderCountrySelector() {
+  if (!state.selectedCountry) return;
+  document.getElementById('countryFlag').textContent = FLAGS[state.selectedCountry.code] || '🌎';
+  document.getElementById('countryCode').textContent = state.selectedCountry.virtualPrefix;
+  document.getElementById('countryName').textContent = NAMES[state.selectedCountry.code] || state.selectedCountry.code;
+  document.getElementById('numberPrefix').textContent = state.selectedCountry.virtualPrefix;
+}
+
+function renderCountryList() {
+  const list = document.getElementById('countryList');
+  list.innerHTML = '';
+  for (const c of state.countries) {
+    const item = document.createElement('div');
+    item.className = 'country-item';
+    item.innerHTML = `
+      <div class="country-item-flag">${FLAGS[c.code] || '🌎'}</div>
+      <div class="country-item-info">
+        <div class="country-item-name">${NAMES[c.code] || c.code}</div>
+        <div class="country-item-code">${c.virtualPrefix}</div>
+      </div>
+    `;
+    item.onclick = () => selectCountry(c);
+    list.appendChild(item);
+  }
+}
+
+function selectCountry(c) {
+  state.selectedCountry = c;
+  renderCountrySelector();
+  closeCountryDropdown();
+}
+
+function openCountryDropdown() {
+  document.getElementById('countryDropdown').classList.add('show');
+}
+
+function closeCountryDropdown() {
+  document.getElementById('countryDropdown').classList.remove('show');
+}
+
+document.getElementById('countryDropdown').addEventListener('click', (e) => {
+  if (e.target.id === 'countryDropdown') closeCountryDropdown();
+});
+
+document.getElementById('noNumberBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('noNumberBtn');
+  btn.disabled = true;
+  btn.textContent = 'Generando...';
+  try {
+    const res = await fetch('/api/auth/request-number', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ country_code: state.selectedCountry.code })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      document.getElementById('numberError').textContent = data.error || 'Error generando número';
+      btn.disabled = false;
+      btn.textContent = 'No tengo número';
+      return;
+    }
+    state.tempId = data.temp_id;
+    state.numberValue = data.number;
+    const suffix = data.number.substring(state.selectedCountry.virtualPrefix.replace('+', '').replace(/\s/g, '').length);
+    document.getElementById('numberInput').value = suffix;
+    btn.style.display = 'none';
+    document.getElementById('numberError').textContent = '';
+  } catch (err) {
+    document.getElementById('numberError').textContent = 'Error de conexión';
+    btn.disabled = false;
+    btn.textContent = 'No tengo número';
+  }
+});
+
+document.getElementById('numberNextBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('numberNextBtn');
+  const error = document.getElementById('numberError');
+  error.textContent = '';
+
+  const prefix = state.selectedCountry.virtualPrefix.replace('+', '').replace(/\s/g, '');
+  const suffix = document.getElementById('numberInput').value.trim();
+  const fullNumber = prefix + suffix;
+
+  if (!suffix || suffix.length < 4) {
+    error.textContent = 'Ingresa un número válido';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+
+  try {
+    const res = await fetch('/api/auth/check-number', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ number: fullNumber })
+    });
+    const data = await res.json();
+
+    if (data.exists && data.has_pin) {
+      state.pinMode = 'verify';
+      state.numberValue = fullNumber;
+      document.getElementById('pinTitle').textContent = 'Ingresa tu PIN';
+      document.getElementById('pinInfo').textContent = 'Ingresa tu PIN de 4 dígitos para acceder a tu cuenta.';
+      resetPin();
+      goToScreen('screen-pin');
+    } else if (data.exists && !data.has_pin) {
+      error.textContent = 'Este número no tiene PIN configurado';
+      btn.disabled = false;
+      btn.textContent = 'Continuar';
+      return;
+    } else if (data.pending && data.temp_id) {
+      state.tempId = data.temp_id;
+      state.numberValue = fullNumber;
+      state.pinMode = data.has_pin ? 'verify-temp' : 'create';
+      document.getElementById('pinTitle').textContent = data.has_pin ? 'Ingresa tu PIN' : 'Crear PIN';
+      document.getElementById('pinInfo').textContent = data.has_pin
+        ? 'Ingresa tu PIN de 4 dígitos.'
+        : 'Crea un PIN de 4 dígitos para proteger tu cuenta.';
+      resetPin();
+      goToScreen('screen-pin');
+    } else {
+      error.textContent = 'Número no encontrado. Toca "No tengo número" para generar uno nuevo.';
+      btn.disabled = false;
+      btn.textContent = 'Continuar';
+    }
+  } catch (err) {
+    error.textContent = 'Error de conexión';
+    btn.disabled = false;
+    btn.textContent = 'Continuar';
+  }
+});
+
+let pinBuffer = [];
+
+function resetPin() {
+  pinBuffer = [];
+  state.pin = '';
+  renderPinDisplay();
+  document.getElementById('pinError').textContent = '';
+  renderPinPad();
+}
+
+function renderPinDisplay() {
+  const dots = document.querySelectorAll('#pinDisplay .pin-dot');
+  dots.forEach((d, i) => {
+    if (i < pinBuffer.length) d.classList.add('filled');
+    else d.classList.remove('filled');
+  });
+}
+
+function renderPinPad() {
+  const pad = document.getElementById('pinPad');
+  pad.innerHTML = '';
+  const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'back'];
+  for (const k of keys) {
+    const btn = document.createElement('button');
+    btn.className = 'pin-key';
+    if (k === '') {
+      btn.classList.add('empty');
+      btn.disabled = true;
+    } else if (k === 'back') {
+      btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z"/></svg>';
+      btn.onclick = () => {
+        pinBuffer.pop();
+        renderPinDisplay();
+        if (pinBuffer.length === 4) setTimeout(submitPin, 150);
+      };
+    } else {
+      btn.textContent = k;
+      btn.onclick = () => {
+        if (pinBuffer.length >= 4) return;
+        pinBuffer.push(k);
+        renderPinDisplay();
+        if (pinBuffer.length === 4) setTimeout(submitPin, 150);
+      };
+    }
+    pad.appendChild(btn);
+  }
+}
+
+async function submitPin() {
+  const pin = pinBuffer.join('');
+  const error = document.getElementById('pinError');
+  error.textContent = '';
+
+  if (state.pinMode === 'verify') {
+    try {
+      const res = await fetch('/api/auth/verify-pin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ number: state.numberValue, pin })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        error.textContent = data.error || 'PIN incorrecto';
+        pinBuffer = [];
+        renderPinDisplay();
+        return;
+      }
+      await finalizeLogin(data);
+    } catch (err) {
+      error.textContent = 'Error de conexión';
+      pinBuffer = [];
+      renderPinDisplay();
+    }
+  } else if (state.pinMode === 'create') {
+    if (!state.confirmPin) {
+      state.confirmPin = pin;
+      document.getElementById('pinTitle').textContent = 'Confirmar PIN';
+      document.getElementById('pinInfo').textContent = 'Ingresa el mismo PIN de nuevo para confirmar.';
+      pinBuffer = [];
+      renderPinDisplay();
+      return;
+    }
+    if (state.confirmPin !== pin) {
+      error.textContent = 'Los PIN no coinciden';
+      state.confirmPin = null;
+      document.getElementById('pinTitle').textContent = 'Crear PIN';
+      document.getElementById('pinInfo').textContent = 'Crea un PIN de 4 dígitos para proteger tu cuenta.';
+      pinBuffer = [];
+      renderPinDisplay();
+      return;
+    }
+    try {
+      const res = await fetch('/api/auth/set-temp-pin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ temp_id: state.tempId, pin })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        error.textContent = data.error || 'Error guardando PIN';
+        pinBuffer = [];
+        renderPinDisplay();
+        return;
+      }
+      state.pin = pin;
+      goToScreen('screen-profile');
+    } catch (err) {
+      error.textContent = 'Error de conexión';
+      pinBuffer = [];
+      renderPinDisplay();
+    }
+  } else if (state.pinMode === 'verify-temp') {
+    try {
+      const res = await fetch('/api/auth/set-temp-pin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ temp_id: state.tempId, pin })
+      });
+      if (!res.ok) {
+        error.textContent = 'PIN incorrecto';
+        pinBuffer = [];
+        renderPinDisplay();
+        return;
+      }
+      state.pin = pin;
+      goToScreen('screen-profile');
+    } catch (err) {
+      error.textContent = 'Error de conexión';
+      pinBuffer = [];
+      renderPinDisplay();
+    }
+  }
+}
+
+function pickAvatar() {
+  document.getElementById('avatarInput').click();
+}
+
+document.getElementById('avatarInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    document.getElementById('profileError').textContent = 'Solo se permiten imágenes';
+    return;
+  }
+
+  const cropped = await cropToSquare(file, 500);
+  document.getElementById('avatarImg').src = cropped.dataUrl;
+  document.getElementById('profileError').textContent = '';
+
+  if (state.tempId) {
+    uploadTempAvatar(cropped.blob);
+  }
+});
+
+function cropToSquare(file, size) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      const min = Math.min(img.width, img.height);
+      const sx = (img.width - min) / 2;
+      const sy = (img.height - min) / 2;
+      ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size);
+      canvas.toBlob((blob) => {
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+        URL.revokeObjectURL(url);
+        resolve({ blob, dataUrl });
+      }, 'image/jpeg', 0.9);
+    };
+    img.src = url;
+  });
+}
+
+async function uploadTempAvatar(blob) {
+  if (!state.tempId) return;
+  const form = new FormData();
+  form.append('temp_id', state.tempId);
+  form.append('file', blob, 'avatar.jpg');
+  try {
+    const res = await fetch('/api/upload/temp-avatar', {
+      method: 'POST',
+      body: form
+    });
+    const data = await res.json();
+    if (res.ok) {
+      state.pendingAvatarUrl = data.avatar_url;
+    } else {
+      document.getElementById('profileError').textContent = data.error || 'Error subiendo foto';
+    }
+  } catch (err) {
+    document.getElementById('profileError').textContent = 'Error de conexión';
+  }
+}
+
+document.getElementById('profileNextBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('profileNextBtn');
+  const error = document.getElementById('profileError');
+  error.textContent = '';
+
+  const name = document.getElementById('displayNameInput').value.trim();
+  if (!name) {
+    error.textContent = 'El nombre es obligatorio';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+
+  state.pendingDisplayName = name;
+
+  goToScreen('screen-loading');
+  startLoadingSequence();
+});
+
+async function startLoadingSequence() {
+  const progressBar = document.getElementById('loadingProgress');
+  const loadingText = document.getElementById('loadingText');
+  const duration = 10000;
+  const start = Date.now();
+
+  const steps = [
+    { pct: 15, text: 'Generando claves de cifrado...' },
+    { pct: 35, text: 'Registrando tu cuenta...' },
+    { pct: 60, text: 'Configurando tu perfil...' },
+    { pct: 85, text: 'Preparando todo...' },
+    { pct: 100, text: '¡Listo!' }
+  ];
+
+  const timer = setInterval(() => {
+    const elapsed = Date.now() - start;
+    const pct = Math.min((elapsed / duration) * 100, 100);
+    progressBar.style.width = pct + '%';
+    for (let i = steps.length - 1; i >= 0; i--) {
+      if (pct >= steps[i].pct) {
+        loadingText.textContent = steps[i].text;
+        break;
+      }
+    }
+  }, 100);
+
+  const registrationResult = await performRegistration();
+
+  setTimeout(async () => {
+    clearInterval(timer);
+    progressBar.style.width = '100%';
+    if (registrationResult && registrationResult.success) {
+      await finalizeLogin(registrationResult.data, true);
+    } else {
+      loadingText.textContent = 'Error al configurar tu cuenta';
+    }
+  }, duration);
+}
+
+async function performRegistration() {
+  try {
+    const keyPair = await generateIdentityKeyPair();
+    const signedPrekey = await generateSignedPrekey(keyPair);
+    const oneTimePrekeys = await generateOneTimePrekeys(20);
+
+    const res = await fetch('/api/auth/complete-registration', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        temp_id: state.tempId,
+        username: generateUsername(),
+        password: generateRandomPassword(),
+        display_name: state.pendingDisplayName,
+        avatar_url: state.pendingAvatarUrl || null,
+        identity_key: keyPair.publicKey,
+        signed_prekey: signedPrekey.publicKey,
+        signed_prekey_signature: signedPrekey.signature,
+        registration_id: generateRegistrationId(),
+        one_time_prekeys: oneTimePrekeys
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      return { success: false, error: data.error };
+    }
+    await saveLocal('keys.json', {
+      identity_private: keyPair.privateKey,
+      signed_prekey_private: signedPrekey.privateKey,
+      one_time_prekeys: oneTimePrekeys
+    });
+    return { success: true, data };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+function generateUsername() {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let s = 'user_';
+  for (let i = 0; i < 10; i++) s += chars[Math.floor(Math.random() * chars.length)];
+  return s;
+}
+
+function generateRandomPassword() {
+  const array = new Uint8Array(24);
+  crypto.getRandomValues(array);
+  return Array.from(array).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function generateRegistrationId() {
+  return Math.floor(Math.random() * 16380) + 1;
+}
+
+async function generateIdentityKeyPair() {
+  const kp = await crypto.subtle.generateKey({ name: 'X25519' }, true, ['deriveKey', 'deriveBits']);
+  const pub = await crypto.subtle.exportKey('raw', kp.publicKey);
+  const priv = await crypto.subtle.exportKey('pkcs8', kp.privateKey);
+  return {
+    publicKey: btoa(String.fromCharCode(...new Uint8Array(pub))),
+    privateKey: btoa(String.fromCharCode(...new Uint8Array(priv)))
+  };
+}
+
+async function generateSignedPrekey(identityKeyPair) {
+  const kp = await crypto.subtle.generateKey({ name: 'X25519' }, true, ['deriveKey', 'deriveBits']);
+  const pub = await crypto.subtle.exportKey('raw', kp.publicKey);
+  const priv = await crypto.subtle.exportKey('pkcs8', kp.privateKey);
+  const pubB64 = btoa(String.fromCharCode(...new Uint8Array(pub)));
+  const data = new TextEncoder().encode(pubB64);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  const signature = btoa(String.fromCharCode(...new Uint8Array(hash)));
+  return {
+    publicKey: pubB64,
+    privateKey: btoa(String.fromCharCode(...new Uint8Array(priv))),
+    signature
+  };
+}
+
+async function generateOneTimePrekeys(count) {
+  const prekeys = [];
+  for (let i = 0; i < count; i++) {
+    const kp = await crypto.subtle.generateKey({ name: 'X25519' }, true, ['deriveKey', 'deriveBits']);
+    const pub = await crypto.subtle.exportKey('raw', kp.publicKey);
+    prekeys.push({
+      key_id: i + 1,
+      public_key: btoa(String.fromCharCode(...new Uint8Array(pub)))
+    });
+  }
+  return prekeys;
+}
+
+async function finalizeLogin(data, isNew) {
+  const fp = await computeFingerprint();
+
+  await saveLocal('session.json', {
+    token: data.token,
+    session_token: data.session_token,
+    user: data.user,
+    device_fingerprint: fp,
+    created_at: Date.now()
+  });
+
+  await saveLocal('contacts.json', {});
+  await saveLocal('settings.json', { theme: 'system' });
+
+  window.location.href = '/main';
+}
+
+async function computeFingerprint() {
+  const parts = [
+    navigator.userAgent || '',
+    navigator.platform || '',
+    navigator.language || '',
+    screen.width + 'x' + screen.height,
+    Intl.DateTimeFormat().resolvedOptions().timeZone || ''
+  ].join('|');
+  const data = new TextEncoder().encode(parts);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function tryExistingSession() {
+  await initTheme();
+
+  if (!('showDirectoryPicker' in window)) {
+    state.hasFileSystem = false;
+  } else {
+    const savedHandle = await loadLocal('filehandle.json', null);
+    if (savedHandle && savedHandle.picked) {
+      state.hasFileSystem = false;
+    }
+  }
+
+  const session = await loadLocal('session.json', null);
+  if (!session || !session.token) {
+    setTimeout(() => goToScreen('screen-welcome'), 300);
+    return;
+  }
+
+  const fp = await computeFingerprint();
+  if (session.device_fingerprint && session.device_fingerprint !== fp) {
+    await saveLocal('session.json', {});
+    setTimeout(() => goToScreen('screen-welcome'), 300);
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/auth/me', {
+      headers: { 'Authorization': 'Bearer ' + session.token }
+    });
+    if (!res.ok) {
+      await saveLocal('session.json', {});
+      setTimeout(() => goToScreen('screen-welcome'), 300);
+      return;
+    }
+    window.location.href = '/main';
+  } catch (err) {
+    setTimeout(() => goToScreen('screen-welcome'), 300);
+  }
+}
+
+renderPinPad();
+tryExistingSession();
+</script>
+
+</body>
+</html>
