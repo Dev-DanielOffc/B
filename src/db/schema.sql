@@ -12,6 +12,9 @@ CREATE TABLE IF NOT EXISTS users (
   avatar_url TEXT,
   bio TEXT,
   password_hash TEXT NOT NULL,
+  pin_hash TEXT,
+  pin_set_at INTEGER,
+  onboarding_completed INTEGER DEFAULT 0,
   identity_key TEXT NOT NULL,
   signed_prekey TEXT NOT NULL,
   signed_prekey_signature TEXT NOT NULL,
@@ -49,6 +52,18 @@ CREATE TABLE IF NOT EXISTS virtual_numbers (
 );
 
 CREATE INDEX IF NOT EXISTS idx_numbers_country ON virtual_numbers(country_code, assigned);
+
+CREATE TABLE IF NOT EXISTS pending_registrations (
+  id TEXT PRIMARY KEY,
+  number TEXT UNIQUE NOT NULL,
+  country_code TEXT NOT NULL,
+  pin_hash TEXT,
+  avatar_url TEXT,
+  created_at INTEGER NOT NULL,
+  expires_at INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_pending_expires ON pending_registrations(expires_at);
 
 CREATE TABLE IF NOT EXISTS mcid_registry (
   id TEXT PRIMARY KEY,
@@ -119,4 +134,4 @@ CREATE TABLE IF NOT EXISTS schema_version (
   applied_at INTEGER NOT NULL
 );
 
-INSERT OR IGNORE INTO schema_version (version, applied_at) VALUES (1, strftime('%s', 'now') * 1000);
+INSERT OR IGNORE INTO schema_version (version, applied_at) VALUES (2, strftime('%s', 'now') * 1000);
