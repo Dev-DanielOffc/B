@@ -578,36 +578,8 @@ html, body {
   opacity: 1;
   transform: translateY(0);
 }
-.settings-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100dvh;
-  background-color: var(--bg-main);
-  z-index: 500;
-  display: none;
-  flex-direction: column;
-  animation: slideIn 0.25s ease-out;
-}
-.settings-overlay.show {
-  display: flex;
-}
-.new-chat-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100dvh;
-  background-color: var(--bg-main);
-  z-index: 500;
-  display: none;
-  flex-direction: column;
-  animation: slideIn 0.25s ease-out;
-}
-.new-chat-overlay.show {
-  display: flex;
-}
+.settings-overlay,
+.new-chat-overlay,
 .chat-open-overlay {
   position: fixed;
   top: 0;
@@ -620,6 +592,8 @@ html, body {
   flex-direction: column;
   animation: slideIn 0.25s ease-out;
 }
+.settings-overlay.show,
+.new-chat-overlay.show,
 .chat-open-overlay.show {
   display: flex;
 }
@@ -863,30 +837,9 @@ html, body {
     </button>
     <div class="brand-title">Ajustes</div>
   </div>
-
-  <div class="settings-list">
-    <div class="setting-item" onclick="openStorageModal()">
-      <svg class="setting-icon" viewBox="0 0 24 24"><path d="M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-4H2v4zm2-3h2v2H4v-2z"/></svg>
-      <div class="setting-info">
-        <div class="setting-title">Almacenamiento</div>
-        <div class="setting-sub" id="storageSub">Calculando uso...</div>
-      </div>
-    </div>
-
-    <div class="setting-item" onclick="openThemeModal()">
-      <svg class="setting-icon" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
-      <div class="setting-info">
-        <div class="setting-title">Diseño</div>
-        <div class="setting-sub" id="themeSub">Tema actual: Sistema</div>
-      </div>
-    </div>
-
-    <div class="setting-item" onclick="openProfileView()">
-      <svg class="setting-icon" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-      <div class="setting-info">
-        <div class="setting-title">Perfil</div>
-        <div class="setting-sub" id="profileSub">Ver y editar tu perfil</div>
-      </div>
+  <div class="settings-list" id="settingsContent">
+    <div class="empty-state">
+      <p>Cargando...</p>
     </div>
   </div>
 </div>
@@ -912,45 +865,9 @@ html, body {
     </button>
     <div class="brand-title" id="chatOpenTitle">Chat</div>
   </div>
-  <div class="settings-list">
+  <div class="settings-list" id="chatOpenContent">
     <div class="empty-state">
-      <p>Próximamente</p>
-    </div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="storageModal">
-  <div class="modal-card">
-    <div class="modal-title">Uso de Almacenamiento</div>
-    <div class="storage-detail">
-      Espacio ocupado por los chats, mensajes y estados:
-      <div class="storage-highlight" id="storageValue">0 KB</div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-close" onclick="closeModal('storageModal')">Aceptar</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="themeModal">
-  <div class="modal-card">
-    <div class="modal-title">Elegir tema</div>
-    <div class="theme-options">
-      <label class="theme-option">
-        <input type="radio" name="themeChoice" value="system" onchange="setTheme('system')">
-        Predeterminado del sistema
-      </label>
-      <label class="theme-option">
-        <input type="radio" name="themeChoice" value="light" onchange="setTheme('light')">
-        Claro
-      </label>
-      <label class="theme-option">
-        <input type="radio" name="themeChoice" value="dark" onchange="setTheme('dark')">
-        Oscuro
-      </label>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-close" onclick="closeModal('themeModal')">Cerrar</button>
+      <p>Cargando...</p>
     </div>
   </div>
 </div>
@@ -966,7 +883,10 @@ const state = {
   ws: null,
   wsReconnectTimer: null,
   fileHandle: null,
-  hasFileSystem: false
+  hasFileSystem: false,
+  settingsLoaded: false,
+  newChatLoaded: false,
+  chatOpenLoaded: false
 };
 
 const tabs = ['chats', 'unread', 'favorites'];
@@ -975,17 +895,6 @@ let isTransitioning = false;
 function applyTheme(theme) {
   document.documentElement.classList.remove('theme-system', 'theme-light', 'theme-dark');
   document.documentElement.classList.add('theme-' + theme);
-  const labels = { system: 'Predeterminado del sistema', light: 'Claro', dark: 'Oscuro' };
-  const sub = document.getElementById('themeSub');
-  if (sub) sub.textContent = 'Tema actual: ' + (labels[theme] || 'Predeterminado del sistema');
-  const radio = document.querySelector(`input[name="themeChoice"][value="${theme}"]`);
-  if (radio) radio.checked = true;
-}
-
-async function setTheme(theme) {
-  state.settings.theme = theme;
-  applyTheme(theme);
-  await saveLocal('settings.json', { theme });
 }
 
 function initTheme() {
@@ -1031,22 +940,6 @@ async function saveLocal(filename, data) {
     return true;
   } catch (err) {
     return false;
-  }
-}
-
-async function getFileHandle() {
-  if (!('showDirectoryPicker' in window)) {
-    state.hasFileSystem = false;
-    return null;
-  }
-  try {
-    const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
-    state.fileHandle = handle;
-    state.hasFileSystem = true;
-    return handle;
-  } catch (err) {
-    state.hasFileSystem = false;
-    return null;
   }
 }
 
@@ -1337,15 +1230,44 @@ function handleChatClick(element) {
   openChatView(mcid);
 }
 
-function openChatView(mcid) {
+async function openChatView(mcid) {
   const name = getDisplayName(mcid);
+  const overlay = document.getElementById('chatOpenOverlay');
+  const content = document.getElementById('chatOpenContent');
   document.getElementById('chatOpenTitle').textContent = name;
-  document.getElementById('chatOpenOverlay').classList.add('show');
+  overlay.classList.add('show');
   history.pushState({ view: 'chat', mcid }, '', '/chat/' + encodeURIComponent(mcid));
+
+  if (!state.chatOpenLoaded) {
+    content.innerHTML = '<div class="empty-state"><p>Cargando...</p></div>';
+    try {
+      const res = await fetch('/chat?mcid=' + encodeURIComponent(mcid), { headers: { 'X-Requested-With': 'fetch' } });
+      const html = await res.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const body = doc.querySelector('.chat') || doc.body;
+      content.innerHTML = body.innerHTML;
+
+      const scripts = doc.querySelectorAll('script');
+      for (const oldScript of scripts) {
+        const newScript = document.createElement('script');
+        if (oldScript.src) {
+          newScript.src = oldScript.src;
+        } else {
+          newScript.textContent = oldScript.textContent;
+        }
+        document.body.appendChild(newScript);
+      }
+      state.chatOpenLoaded = true;
+    } catch (err) {
+      content.innerHTML = '<div class="empty-state"><p>Error cargando chat</p></div>';
+    }
+  }
 }
 
 function closeChatView(skipHistory) {
   document.getElementById('chatOpenOverlay').classList.remove('show');
+  state.chatOpenLoaded = false;
   if (!skipHistory && window.location.pathname.startsWith('/chat/')) {
     history.pushState({ view: 'home' }, '', '/main');
   }
@@ -1450,107 +1372,85 @@ function filterChats() {
   }
 }
 
-function openSettingsView(skipHistory) {
-  document.getElementById('settingsOverlay').classList.add('show');
+async function openSettingsView(skipHistory) {
+  const overlay = document.getElementById('settingsOverlay');
+  const content = document.getElementById('settingsContent');
+
+  if (!state.settingsLoaded) {
+    content.innerHTML = '<div class="empty-state"><p>Cargando...</p></div>';
+    try {
+      const res = await fetch('/ajustes', { headers: { 'X-Requested-With': 'fetch' } });
+      const html = await res.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const container = doc.querySelector('.settings-container') || doc.body;
+      content.innerHTML = container.innerHTML;
+
+      const scripts = doc.querySelectorAll('script');
+      for (const oldScript of scripts) {
+        const newScript = document.createElement('script');
+        if (oldScript.src) {
+          newScript.src = oldScript.src;
+        } else {
+          newScript.textContent = oldScript.textContent;
+        }
+        document.body.appendChild(newScript);
+      }
+      state.settingsLoaded = true;
+    } catch (err) {
+      content.innerHTML = '<div class="empty-state"><p>Error cargando ajustes</p></div>';
+    }
+  }
+
+  overlay.classList.add('show');
   if (!skipHistory) history.pushState({ view: 'settings' }, '', '/ajustes');
 }
 
 function closeSettingsView(skipHistory) {
-  closeModal('storageModal');
-  closeModal('themeModal');
   document.getElementById('settingsOverlay').classList.remove('show');
   if (!skipHistory && window.location.pathname.startsWith('/ajustes')) {
     history.pushState({ view: 'home' }, '', '/main');
   }
 }
 
-function openNewChatView(skipHistory) {
-  document.getElementById('newChatOverlay').classList.add('show');
-  loadNewChatContacts();
+async function openNewChatView(skipHistory) {
+  const overlay = document.getElementById('newChatOverlay');
+  const list = document.getElementById('newChatList');
+  overlay.classList.add('show');
   if (!skipHistory) history.pushState({ view: 'new-chat' }, '', '/new-chat');
+
+  if (!state.newChatLoaded) {
+    list.innerHTML = '<div class="empty-state"><p>Cargando contactos...</p></div>';
+    try {
+      const res = await fetch('/new-chat', { headers: { 'X-Requested-With': 'fetch' } });
+      const html = await res.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const container = doc.querySelector('.new-chat-container') || doc.body;
+      list.innerHTML = container.innerHTML;
+
+      const scripts = doc.querySelectorAll('script');
+      for (const oldScript of scripts) {
+        const newScript = document.createElement('script');
+        if (oldScript.src) {
+          newScript.src = oldScript.src;
+        } else {
+          newScript.textContent = oldScript.textContent;
+        }
+        document.body.appendChild(newScript);
+      }
+      state.newChatLoaded = true;
+    } catch (err) {
+      list.innerHTML = '<div class="empty-state"><p>Error cargando contactos</p></div>';
+    }
+  }
 }
 
 function closeNewChatView(skipHistory) {
   document.getElementById('newChatOverlay').classList.remove('show');
+  state.newChatLoaded = false;
   if (!skipHistory && window.location.pathname === '/new-chat') {
     history.pushState({ view: 'home' }, '', '/main');
-  }
-}
-
-function openProfileView() {
-  window.location.href = '/ajustes';
-}
-
-function openStorageModal() {
-  calculateStorage();
-  document.getElementById('storageModal').classList.add('show');
-  history.pushState({ view: 'storage' }, '', '/ajustes/almacenamiento');
-}
-
-function openThemeModal() {
-  document.getElementById('themeModal').classList.add('show');
-  history.pushState({ view: 'theme' }, '', '/ajustes/diseno');
-}
-
-function closeModal(id) {
-  document.getElementById(id).classList.remove('show');
-}
-
-async function calculateStorage() {
-  let total = 0;
-  if (state.hasFileSystem && state.fileHandle) {
-    total = 1024;
-  } else {
-    for (const key in localStorage) {
-      if (localStorage.hasOwnProperty(key) && key.startsWith('mc_')) {
-        total += (localStorage[key].length + key.length) * 2;
-      }
-    }
-  }
-  let formatted;
-  if (total < 1024) formatted = total + ' Bytes';
-  else if (total < 1024 * 1024) formatted = (total / 1024).toFixed(2) + ' KB';
-  else formatted = (total / (1024 * 1024)).toFixed(2) + ' MB';
-  document.getElementById('storageSub').textContent = 'Guardado: ' + formatted;
-  document.getElementById('storageValue').textContent = formatted;
-}
-
-async function loadNewChatContacts() {
-  const list = document.getElementById('newChatList');
-  list.innerHTML = '<div class="empty-state"><p>Cargando contactos...</p></div>';
-  try {
-    const res = await api('/chat');
-    const data = await res.json();
-    const chats = data.chats || [];
-    if (chats.length === 0) {
-      list.innerHTML = '<div class="empty-state"><p>No tienes contactos aún</p><p style="font-size:12px">Busca usuarios para empezar</p></div>';
-      return;
-    }
-    list.innerHTML = '';
-    for (const chat of chats) {
-      const mcid = chat.other_user ? chat.other_user.mcid : null;
-      if (!mcid) continue;
-      const name = getDisplayName(mcid);
-      const avatar = chat.other_user.avatar_url
-        ? `<img src="${chat.other_user.avatar_url}" alt="">`
-        : getInitials(name);
-      const item = document.createElement('div');
-      item.className = 'setting-item';
-      item.innerHTML = `
-        <div class="avatar" style="width:44px;height:44px;font-size:16px;flex-shrink:0">${avatar}</div>
-        <div class="setting-info">
-          <div class="setting-title">${escapeHtml(name)}</div>
-          <div class="setting-sub">${escapeHtml(chat.other_user.virtual_number || '')}</div>
-        </div>
-      `;
-      item.onclick = () => {
-        closeNewChatView();
-        openChatView(mcid);
-      };
-      list.appendChild(item);
-    }
-  } catch (err) {
-    list.innerHTML = '<div class="empty-state"><p>Error cargando contactos</p></div>';
   }
 }
 
@@ -1568,9 +1468,9 @@ async function loadChats() {
         virtual_number: c.other_user.virtual_number,
         display_name: c.other_user.display_name,
         avatar_url: c.other_user.avatar_url,
-        last_message: '',
+        last_message: c.last_message || '',
         last_message_at: c.last_message_at,
-        unread_count: 0
+        unread_count: c.unread_count || 0
       };
       if (!state.contacts[mcid]) {
         state.contacts[mcid] = {
@@ -1728,13 +1628,12 @@ window.addEventListener('popstate', () => {
     document.getElementById('chatOpenTitle').textContent = getDisplayName(mcid);
   } else {
     document.getElementById('chatOpenOverlay').classList.remove('show');
+    state.chatOpenLoaded = false;
   }
   if (path.startsWith('/ajustes/almacenamiento')) {
     openSettingsView(true);
-    document.getElementById('storageModal').classList.add('show');
   } else if (path.startsWith('/ajustes/diseno')) {
     openSettingsView(true);
-    document.getElementById('themeModal').classList.add('show');
   } else if (path === '/ajustes') {
     openSettingsView(true);
   } else {
@@ -1826,11 +1725,6 @@ async function boot() {
   state.contacts = await loadLocal('contacts.json', {});
   state.settings = await loadLocal('settings.json', { theme: 'system' });
   initTheme();
-
-  try {
-    const handle = await loadLocal('filehandle.json', null);
-    if (handle && state.hasFileSystem) state.fileHandle = handle;
-  } catch (e) {}
 
   await loadChats();
   connectWebSocket();
