@@ -7,15 +7,13 @@ let cleanupTimer = null;
 function runCleanup() {
   const now = Date.now();
   try {
-    const result = db.prepare('DELETE FROM pending_messages WHERE expires_at <= ?').run(now);
-    if (result.changes > 0) {
-      console.log(`Cleanup: ${result.changes} mensajes expirados eliminados`);
-    }
-
+    const expiredMessages = db.prepare('DELETE FROM pending_messages WHERE expires_at <= ?').run(now);
     const expiredSessions = db.prepare('DELETE FROM sessions WHERE expires_at <= ?').run(now);
-    if (expiredSessions.changes > 0) {
-      console.log(`Cleanup: ${expiredSessions.changes} sesiones expiradas eliminadas`);
-    }
+    const expiredPending = db.prepare('DELETE FROM pending_registrations WHERE expires_at <= ?').run(now);
+
+    if (expiredMessages.changes > 0) console.log(`Cleanup: ${expiredMessages.changes} mensajes expirados`);
+    if (expiredSessions.changes > 0) console.log(`Cleanup: ${expiredSessions.changes} sesiones expiradas`);
+    if (expiredPending.changes > 0) console.log(`Cleanup: ${expiredPending.changes} registros pendientes expirados`);
   } catch (err) {
     console.error('Error en cleanup:', err.message);
   }
