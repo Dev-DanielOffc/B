@@ -35,10 +35,16 @@ APP_PORT=${APP_PORT:-3033}
 read -p "Usuario del sistema para correr la app [www-data]: " APP_USER
 APP_USER=${APP_USER:-www-data}
 
+if ! id "$APP_USER" &>/dev/null; then
+  err "El usuario $APP_USER no existe en el sistema"
+fi
+
 JWT_SECRET="a_jwt_7hK2pQ9xR4mN6vB3cL8wZ1aY6eJ0oD4fG7hT2qW0Pp9uI3yP8sA1dF5gH3jK6lZ0xC4vB8nM7qW2eR9tY5hP1oP"
 
 PROJECT_DIR="/var/www/messageschat"
 CURRENT_DIR="$(pwd)"
+APP_HOME=$(getent passwd "$APP_USER" | cut -d: -f6)
+PM2_HOME_DIR="$PROJECT_DIR/.pm2"
 
 log "Actualizando sistema..."
 apt-get update -y
@@ -72,16 +78,17 @@ mkdir -p "$PROJECT_DIR"
 
 log "Copiando archivos..."
 if command -v rsync &> /dev/null; then
-  rsync -a --exclude='node_modules' --exclude='.git' --exclude='data' --exclude='uploads' --exclude='logs' "$CURRENT_DIR/" "$PROJECT_DIR/"
+  rsync -a --exclude='node_modules' --exclude='.git' --exclude='data' --exclude='uploads' --exclude='logs' --exclude='.pm2' "$CURRENT_DIR/" "$PROJECT_DIR/"
 else
   cp -r "$CURRENT_DIR/." "$PROJECT_DIR/"
-  rm -rf "$PROJECT_DIR/node_modules" "$PROJECT_DIR/.git" "$PROJECT_DIR/data" "$PROJECT_DIR/uploads" "$PROJECT_DIR/logs"
+  rm -rf "$PROJECT_DIR/node_modules" "$PROJECT_DIR/.git" "$PROJECT_DIR/data" "$PROJECT_DIR/uploads" "$PROJECT_DIR/logs" "$PROJECT_DIR/.pm2"
 fi
 
 cd "$PROJECT_DIR"
 
 log "Creando directorios necesarios..."
 mkdir -p data uploads uploads/avatars uploads/temp logs public public/assets
+mkdir -p "$PM2_HOME_DIR"
 
 log "Creando archivo .env..."
 cat > .env <<EOF
@@ -109,7 +116,7 @@ ok "Dependencias instaladas"
 log "Configurando permisos..."
 chown -R "$APP_USER":"$APP_USER" "$PROJECT_DIR"
 chmod -R 755 "$PROJECT_DIR"
-chmod -R 775 "$PROJECT_DIR/data" "$PROJECT_DIR/uploads" "$PROJECT_DIR/logs"
+chmod -R 775 "$PROJECT_DIR/data" "$PROJECT_DIR/uploads" "$PROJECT_DIR/logs" "$PM2_HOME_DIR"
 
 log "Configurando nginx (HTTP solo para validacion)..."
 cat > /etc/nginx/sites-available/messageschat <<EOF
@@ -143,12 +150,41 @@ mkdir -p /var/www/certbot
 ln -sf /etc/nginx/sites-available/messageschat /etc/nginx/sites-enabled/messageschat
 rm -f /etc/nginx/sites-enabled/default
 
-log "Iniciando app con PM2 antes de nginx..."
+log "Iniciando app con PM2..."
 cd "$PROJECT_DIR"
-sudo -u "$APP_USER" pm2 start ecosystem.config.cjs || err "Error iniciando PM2"
-sudo -u "$APP_USER" pm2 save
 
-env PATH=$PATH:/usr/bin pm2 startup systemd -u "$APP_USER" --hp "/home/$APP_USER" || warn "Configura pm2 startup manualmente"
+sudo -u "$APP_USER" PM2_HOME="$PM2_HOME_DIR" pm2 start ecosystem.config.cjs || err "Error iniciando PM2"
+sudo -u "$APP_USER" PM2_HOME="$PM2_HOME_DIR" pm2 save
+
+log "Configurando PM2 startup..."
+cat > /etc/systemd/system/pm2-$APP_USER.service <<EOF
+[Unit]
+Description=PM2 process manager for $APP_USER
+Documentation=https://pm2.keymetrics.io/
+After=network.target
+
+[Service]
+Type=forking
+User=$APP_USER
+LimitNOFILE=infinity
+LimitNPROC=infinity
+LimitCORE=infinity
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Environment=PM2_HOME=$PM2_HOME_DIR
+PIDFile=$PM2_HOME_DIR/pm2.pid
+Restart=on-failure
+
+ExecStart=/usr/lib/node_modules/pm2/bin/pm2 resurrect
+ExecReload=/usr/lib/node_modules/pm2/bin/pm2 reload all
+ExecStop=/usr/lib/node_modules/pm2/bin/pm2 kill
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable pm2-$APP_USER
+systemctl start pm2-$APP_USER || warn "No se pudo arrancar el servicio PM2 automatico"
 
 log "Reiniciando nginx..."
 nginx -t || err "Error en configuracion de nginx HTTP"
@@ -181,11 +217,11 @@ echo -e "Dominio:    ${BLUE}https://$DOMAIN${NC}"
 echo -e "Puerto:     ${BLUE}$APP_PORT${NC}"
 echo -e "Directorio: ${BLUE}$PROJECT_DIR${NC}"
 echo -e "Usuario:    ${BLUE}$APP_USER${NC}"
+echo -e "PM2_HOME:   ${BLUE}$PM2_HOME_DIR${NC}"
 echo ""
-echo -e "Comandos utiles:"
-echo -e "  ${YELLOW}pm2 status${NC}                     - Ver estado"
-echo -e "  ${YELLOW}pm2 logs messageschat${NC}          - Ver logs"
-echo -e "  ${YELLOW}pm2 restart messageschat${NC}       - Reiniciar"
-echo -e "  ${YELLOW}pm2 stop messageschat${NC}          - Detener"
+echo -e "Comandos utiles (con sudo -u $APP_USER PM2_HOME=$PM2_HOME_DIR):"
+echo -e "  ${YELLOW}sudo -u $APP_USER PM2_HOME=$PM2_HOME_DIR pm2 status${NC}"
+echo -e "  ${YELLOW}sudo -u $APP_USER PM2_HOME=$PM2_HOME_DIR pm2 logs messageschat${NC}"
+echo -e "  ${YELLOW}sudo -u $APP_USER PM2_HOME=$PM2_HOME_DIR pm2 restart messageschat${NC}"
 echo ""
 echo -e "${GREEN}Listo. Tu app esta en https://$DOMAIN${NC}"
