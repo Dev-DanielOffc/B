@@ -676,24 +676,6 @@ html, body {
   font-weight: 700;
   color: var(--text-main);
 }
-.theme-options {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.theme-option {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  cursor: pointer;
-  font-size: 15px;
-  color: var(--text-main);
-}
-.theme-option input[type="radio"] {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--accent);
-}
 .modal-actions {
   display: flex;
   justify-content: flex-end;
@@ -712,17 +694,6 @@ html, body {
 }
 .btn-close:active {
   background-color: var(--bg-hover);
-}
-.storage-detail {
-  font-size: 14px;
-  color: var(--text-sub);
-  line-height: 1.5;
-}
-.storage-highlight {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--accent);
-  margin-top: 6px;
 }
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-6px); }
@@ -886,7 +857,8 @@ const state = {
   hasFileSystem: false,
   settingsLoaded: false,
   newChatLoaded: false,
-  chatOpenLoaded: false
+  chatOpenLoaded: false,
+  chatOpenMcid: null
 };
 
 const tabs = ['chats', 'unread', 'favorites'];
@@ -1238,36 +1210,51 @@ async function openChatView(mcid) {
   overlay.classList.add('show');
   history.pushState({ view: 'chat', mcid }, '', '/chat/' + encodeURIComponent(mcid));
 
-  if (!state.chatOpenLoaded) {
-    content.innerHTML = '<div class="empty-state"><p>Cargando...</p></div>';
-    try {
-      const res = await fetch('/chat?mcid=' + encodeURIComponent(mcid), { headers: { 'X-Requested-With': 'fetch' } });
-      const html = await res.text();
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-      const body = doc.querySelector('.chat') || doc.body;
-      content.innerHTML = body.innerHTML;
+  if (state.chatOpenLoaded && state.chatOpenMcid === mcid) return;
+  state.chatOpenMcid = mcid;
 
-      const scripts = doc.querySelectorAll('script');
-      for (const oldScript of scripts) {
-        const newScript = document.createElement('script');
-        if (oldScript.src) {
-          newScript.src = oldScript.src;
-        } else {
-          newScript.textContent = oldScript.textContent;
-        }
-        document.body.appendChild(newScript);
-      }
-      state.chatOpenLoaded = true;
-    } catch (err) {
-      content.innerHTML = '<div class="empty-state"><p>Error cargando chat</p></div>';
+  content.innerHTML = '<div class="empty-state"><p>Cargando...</p></div>';
+  try {
+    const res = await fetch('/chat?mcid=' + encodeURIComponent(mcid), {
+      headers: { 'X-Requested-With': 'fetch' }
+    });
+    if (!res.ok) {
+      content.innerHTML = '<div class="empty-state"><p>Chat no encontrado</p></div>';
+      return;
     }
+    const html = await res.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const body = doc.body;
+    content.innerHTML = body.innerHTML;
+
+    const styles = doc.querySelectorAll('style');
+    styles.forEach((s) => {
+      const newStyle = document.createElement('style');
+      newStyle.textContent = s.textContent;
+      document.head.appendChild(newStyle);
+    });
+
+    const scripts = doc.querySelectorAll('script');
+    for (const oldScript of scripts) {
+      const newScript = document.createElement('script');
+      if (oldScript.src) {
+        newScript.src = oldScript.src;
+      } else {
+        newScript.textContent = oldScript.textContent;
+      }
+      document.body.appendChild(newScript);
+    }
+    state.chatOpenLoaded = true;
+  } catch (err) {
+    content.innerHTML = '<div class="empty-state"><p>Error cargando chat</p></div>';
   }
 }
 
 function closeChatView(skipHistory) {
   document.getElementById('chatOpenOverlay').classList.remove('show');
   state.chatOpenLoaded = false;
+  state.chatOpenMcid = null;
   if (!skipHistory && window.location.pathname.startsWith('/chat/')) {
     history.pushState({ view: 'home' }, '', '/main');
   }
@@ -1386,6 +1373,13 @@ async function openSettingsView(skipHistory) {
       const container = doc.querySelector('.settings-container') || doc.body;
       content.innerHTML = container.innerHTML;
 
+      const styles = doc.querySelectorAll('style');
+      styles.forEach((s) => {
+        const newStyle = document.createElement('style');
+        newStyle.textContent = s.textContent;
+        document.head.appendChild(newStyle);
+      });
+
       const scripts = doc.querySelectorAll('script');
       for (const oldScript of scripts) {
         const newScript = document.createElement('script');
@@ -1408,6 +1402,7 @@ async function openSettingsView(skipHistory) {
 
 function closeSettingsView(skipHistory) {
   document.getElementById('settingsOverlay').classList.remove('show');
+  state.settingsLoaded = false;
   if (!skipHistory && window.location.pathname.startsWith('/ajustes')) {
     history.pushState({ view: 'home' }, '', '/main');
   }
@@ -1426,8 +1421,15 @@ async function openNewChatView(skipHistory) {
       const html = await res.text();
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, 'text/html');
-      const container = doc.querySelector('.new-chat-container') || doc.body;
-      list.innerHTML = container.innerHTML;
+      const body = doc.body;
+      list.innerHTML = body.innerHTML;
+
+      const styles = doc.querySelectorAll('style');
+      styles.forEach((s) => {
+        const newStyle = document.createElement('style');
+        newStyle.textContent = s.textContent;
+        document.head.appendChild(newStyle);
+      });
 
       const scripts = doc.querySelectorAll('script');
       for (const oldScript of scripts) {
@@ -1607,16 +1609,27 @@ document.getElementById('fabBtn').onclick = (e) => {
 
 document.getElementById('searchInput').addEventListener('input', filterChats);
 
-document.querySelectorAll('.modal-overlay').forEach(modal => {
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) modal.classList.remove('show');
-  });
-});
-
 document.addEventListener('click', (e) => {
   const menu = document.getElementById('dropdownMenu');
   if (!menu.contains(e.target) && e.target.id !== 'threeDotsBtn') {
     menu.classList.remove('show');
+  }
+});
+
+window.addEventListener('message', (event) => {
+  const data = event.data;
+  if (!data || typeof data !== 'object') return;
+  if (data.type === 'close-settings') {
+    closeSettingsView();
+  } else if (data.type === 'theme-changed') {
+    state.settings.theme = data.theme;
+    applyTheme(data.theme);
+  } else if (data.type === 'profile-updated') {
+    state.user = data.user;
+    if (state.session) {
+      state.session.user = data.user;
+      saveLocal('session.json', state.session);
+    }
   }
 });
 
@@ -1629,12 +1642,9 @@ window.addEventListener('popstate', () => {
   } else {
     document.getElementById('chatOpenOverlay').classList.remove('show');
     state.chatOpenLoaded = false;
+    state.chatOpenMcid = null;
   }
-  if (path.startsWith('/ajustes/almacenamiento')) {
-    openSettingsView(true);
-  } else if (path.startsWith('/ajustes/diseno')) {
-    openSettingsView(true);
-  } else if (path === '/ajustes') {
+  if (path.startsWith('/ajustes')) {
     openSettingsView(true);
   } else {
     closeSettingsView(true);
