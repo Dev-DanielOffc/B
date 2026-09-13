@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Nuevo chat</title>
+<style>
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+:root {
+  --bg-main: #ffffff;
+  --bg-card: #ffffff;
+  --bg-hover: #f3f4f6;
+  --bg-input: #f2f4f7;
+  --border-color: #eeeeee;
+  --border-input: #e6e8ec;
+  --text-main: #1f2937;
+  --text-sub: #6b7280;
+  --text-muted: #9ca3af;
+  --accent: #2563eb;
+  --accent-soft: rgba(37, 99, 235, 0.12);
+  --danger: #ef4444;
+}
+@media (prefers-color-scheme: dark) {
+  :root.theme-system {
+    --bg-main: #111827;
+    --bg-card: #1f2937;
+    --bg-hover: #374151;
+    --bg-input: #1f2937;
+    --border-color: #374151;
+    --border-input: #374151;
+    --text-main: #f9fafb;
+    --text-sub: #9ca3af;
+    --text-muted: #6b7280;
+    --accent: #3b82f6;
+    --accent-soft: rgba(59, 130, 246, 0.18);
+    --danger: #ef4444;
+  }
+}
+:root.theme-dark {
+  --bg-main: #111827;
+  --bg-card: #1f2937;
+  --bg-hover: #374151;
+  --bg-input: #1f2937;
+  --border-color: #374151;
+  --border-input: #374151;
+  --text-main: #f9fafb;
+  --text-sub: #9ca3af;
+  --text-muted: #6b7280;
+  --accent: #3b82f6;
+  --accent-soft: rgba(59, 130, 246, 0.18);
+  --danger: #ef4444;
+}
+:root.theme-light {
+  --bg-main: #ffffff;
+  --bg-card: #ffffff;
+  --bg-hover: #f3f4f6;
+  --bg-input: #f2f4f7;
+  --border-color: #eeeeee;
+  --border-input: #e6e8ec;
+  --text-main: #1f2937;
+  --text-sub: #6b7280;
+  --text-muted: #9ca3af;
+  --accent: #2563eb;
+  --accent-soft: rgba(37, 99, 235, 0.12);
+  --danger: #ef4444;
+}
+html, body {
+  width:100%;
+  height:100%;
+  height:100dvh;
+  overflow:hidden;
+  background:var(--bg-main);
+  color:var(--text-main);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  transition:background .2s,color .2s;
+}
+.new-chat-container {
+  width:100%;
+  height:100dvh;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  position:relative;
+}
+.search-area {
+  padding:12px 16px;
+  border-bottom:1px solid var(--border-color);
+  flex-shrink:0;
+  background:var(--bg-main);
+}
+.search-box {
+  background:var(--bg-input);
+  border:1px solid var(--border-input);
+  border-radius:24px;
+  padding:10px 16px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  transition:border-color .2s;
+}
+.search-box:focus-within {
+  border-color:var(--accent);
+}
+.search-box svg {
+  width:18px;
+  height:18px;
+  fill:var(--text-sub);
+  flex-shrink:0;
+}
+.search-input {
+  width:100%;
+  background:transparent;
+  border:none;
+  outline:none;
+  color:var(--text-main);
+  font-size:15px;
+  font-family:inherit;
+  -webkit-user-select:text;
+  user-select:text;
+}
+.search-input::placeholder {
+  color:var(--text-muted);
+}
+.section-title {
+  font-size:12px;
+  font-weight:700;
+  color:var(--text-sub);
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+  padding:16px 20px 8px 20px;
+}
+.contacts-list {
+  flex:1;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+.contact-item {
+  display:flex;
+  align-items:center;
+  padding:12px 16px;
+  gap:14px;
+  cursor:pointer;
+  transition:background .15s;
+  border-bottom:1px solid var(--border-color);
+}
+.contact-item:active {
+  background:var(--bg-hover);
+}
+.avatar {
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#002D62,#CE1126);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:700;
+  font-size:18px;
+  flex-shrink:0;
+  overflow:hidden;
+}
+.avatar img {
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  border-radius:50%;
+}
+.contact-info {
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  min-width:0;
+}
+.contact-name {
+  font-size:16px;
+  font-weight:600;
+  color:var(--text-main);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.contact-sub {
+  font-size:13px;
+  color:var(--text-sub);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.contact-arrow {
+  width:20px;
+  height:20px;
+  fill:var(--text-muted);
+  flex-shrink:0;
+}
+.empty-state {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  height:60%;
+  color:var(--text-muted);
+  text-align:center;
+  gap:10px;
+  font-size:14px;
+  padding:20px;
+}
+.empty-state .title {
+  font-size:16px;
+  font-weight:600;
+  color:var(--text-sub);
+}
+.empty-state .sub {
+  font-size:13px;
+  max-width:280px;
+  line-height:1.5;
+}
+.loading-state {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:200px;
+  color:var(--text-muted);
+  font-size:14px;
+}
+.spinner {
+  width:32px;
+  height:32px;
+  border:3px solid var(--border-color);
+  border-top-color:var(--accent);
+  border-radius:50%;
+  animation:spin 0.8s linear infinite;
+  margin-right:12px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.modal-overlay {
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.5);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:1000;
+  padding:20px;
+  backdrop-filter:blur(4px);
+  -webkit-backdrop-filter:blur(4px);
+}
+.modal-overlay.show {
+  display:flex;
+}
+.modal-card {
+  width:100%;
+  max-width:340px;
+  background:var(--bg-card);
+  border-radius:20px;
+  padding:24px;
+  box-shadow:0 20px 40px rgba(0,0,0,0.3);
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  animation:modalPop .25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes modalPop {
+  0% { transform:scale(0.9); opacity:0; }
+  100% { transform:scale(1); opacity:1; }
+}
+.modal-title {
+  font-size:18px;
+  font-weight:700;
+  color:var(--text-main);
+}
+.modal-sub {
+  font-size:14px;
+  color:var(--text-sub);
+  line-height:1.5;
+}
+.modal-avatar {
+  width:80px;
+  height:80px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#002D62,#CE1126);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:700;
+  font-size:28px;
+  align-self:center;
+  overflow:hidden;
+  margin:0 auto;
+}
+.modal-avatar img {
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.input-wrap {
+  width:100%;
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid var(--border-input);
+  background:var(--bg-input);
+  display:flex;
+  align-items:center;
+  gap:10px;
+  transition:border-color .2s;
+}
+.input-wrap:focus-within {
+  border-color:var(--accent);
+}
+.input-wrap input {
+  flex:1;
+  background:transparent;
+  border:none;
+  outline:none;
+  color:var(--text-main);
+  font-size:15px;
+  font-family:inherit;
+  -webkit-user-select:text;
+  user-select:text;
+  min-width:0;
+}
+.input-wrap input::placeholder {
+  color:var(--text-muted);
+}
+.modal-actions {
+  display:flex;
+  gap:10px;
+  margin-top:4px;
+}
+.btn {
+  flex:1;
+  padding:12px;
+  border-radius:12px;
+  border:none;
+  font-size:15px;
+  font-weight:600;
+  cursor:pointer;
+  transition:transform .15s,background .15s;
+  font-family:inherit;
+}
+.btn:active {
+  transform:scale(0.97);
+}
+.btn-primary {
+  background:var(--accent);
+  color:#fff;
+}
+.btn-secondary {
+  background:var(--bg-input);
+  color:var(--text-main);
+}
+.btn:disabled {
+  opacity:0.5;
+  cursor:not-allowed;
+}
+.error-text {
+  font-size:13px;
+  color:var(--danger);
+  text-align:center;
+  min-height:18px;
+}
+.toast {
+  position:fixed;
+  bottom:30px;
+  left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:rgba(0,0,0,0.85);
+  color:#fff;
+  padding:10px 20px;
+  border-radius:12px;
+  font-size:14px;
+  font-weight:500;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .25s, transform .25s;
+  z-index:2000;
+  white-space:nowrap;
+}
+.toast.show {
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+</style>
+</head>
+<body>
+
+<div class="new-chat-container">
+  <div class="search-area">
+    <div class="search-box">
+      <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      <input type="text" class="search-input" id="searchInput" placeholder="Buscar por MCID, número o nombre..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    </div>
+  </div>
+
+  <div class="contacts-list" id="contactsList">
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <span>Cargando contactos...</span>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addContactModal">
+  <div class="modal-card">
+    <div class="modal-avatar" id="modalAvatar">?</div>
+    <div class="modal-title" id="modalTitle">Añadir contacto</div>
+    <div class="modal-sub" id="modalSub">Ponle un nombre a este contacto</div>
+    <div>
+      <label style="font-size:12px;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;display:block">Nombre</label>
+      <div class="input-wrap">
+        <input type="text" id="aliasInput" placeholder="Ej: Juan Pérez" maxlength="50" autocomplete="off">
+      </div>
+    </div>
+    <div class="error-text" id="modalError"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeAddModal()">Cancelar</button>
+      <button class="btn btn-primary" id="addContactBtn">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const chatState = {
+  session: null,
+  user: null,
+  contacts: {},
+  chats: {},
+  fileHandle: null,
+  hasFileSystem: false,
+  allUsers: [],
+  searchResults: [],
+  selectedUser: null,
+  searchTimeout: null
+};
+
+async function loadLocal(filename, fallback = null) {
+  if (chatState.hasFileSystem && chatState.fileHandle) {
+    try {
+      const fh = await chatState.fileHandle.getFileHandle(filename, { create: true });
+      const file = await fh.getFile();
+      const text = await file.text();
+      if (!text) return fallback;
+      return JSON.parse(text);
+    } catch (e) {}
+  }
+  try {
+    const raw = localStorage.getItem('mc_' + filename);
+    if (!raw) return fallback;
+    return JSON.parse(raw);
+  } catch (e) {
+    return fallback;
+  }
+}
+
+async function saveLocal(filename, data) {
+  const text = JSON.stringify(data, null, 2);
+  if (chatState.hasFileSystem && chatState.fileHandle) {
+    try {
+      const fh = await chatState.fileHandle.getFileHandle(filename, { create: true });
+      const w = await fh.createWritable();
+      await w.write(text);
+      await w.close();
+      return true;
+    } catch (e) {}
+  }
+  try {
+    localStorage.setItem('mc_' + filename, text);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function showToast(text) {
+  const toast = document.getElementById('toast');
+  toast.textContent = text;
+  toast.classList.add('show');
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+function escapeHtml(text) {
+  if (!text) return '';
+  return String(text).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function getInitials(name) {
+  if (!name) return '?';
+  return name.trim().charAt(0).toUpperCase();
+}
+
+function getDisplayName(mcid) {
+  const contact = chatState.contacts[mcid];
+  if (contact && contact.alias) return contact.alias;
+  const chat = chatState.chats[mcid];
+  if (chat && chat.virtual_number) return chat.virtual_number;
+  return mcid ? mcid.split('@')[0] : '?';
+}
+
+async function api(path, options = {}) {
+  const headers = options.headers || {};
+  headers['Content-Type'] = headers['Content-Type'] || 'application/json';
+  if (chatState.session && chatState.session.token) {
+    headers['Authorization'] = 'Bearer ' + chatState.session.token;
+  }
+  const res = await fetch('/api' + path, { ...options, headers });
+  return res;
+}
+
+async function bootstrap() {
+  const session = await loadLocal('session.json', null);
+  if (!session || !session.token) {
+    window.location.href = '/';
+    return;
+  }
+  chatState.session = session;
+  chatState.user = session.user;
+  chatState.contacts = await loadLocal('contacts.json', {});
+  chatState.chats = await loadLocal('chats_cache.json', {});
+
+  await loadContacts();
+
+  document.getElementById('searchInput').addEventListener('input', onSearchInput);
+  document.getElementById('addContactBtn').addEventListener('click', saveContactAlias);
+  document.getElementById('aliasInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') saveContactAlias();
+  });
+}
+
+async function loadContacts() {
+  const list = document.getElementById('contactsList');
+  list.innerHTML = '<div class="loading-state"><div class="spinner"></div><span>Cargando contactos...</span></div>';
+
+  try {
+    const res = await api('/chat');
+    if (!res.ok) {
+      list.innerHTML = '<div class="empty-state"><div class="title">No se pudieron cargar los contactos</div></div>';
+      return;
+    }
+    const data = await res.json();
+    const chats = data.chats || [];
+    for (const c of chats) {
+      if (c.other_user && c.other_user.mcid) {
+        chatState.chats[c.other_user.mcid] = {
+          mcid: c.other_user.mcid,
+          virtual_number: c.other_user.virtual_number,
+          display_name: c.other_user.display_name,
+          avatar_url: c.other_user.avatar_url
+        };
+      }
+    }
+    await saveLocal('chats_cache.json', chatState.chats);
+    renderContacts();
+  } catch (e) {
+    list.innerHTML = '<div class="empty-state"><div class="title">Error de conexión</div></div>';
+  }
+}
+
+function renderContacts() {
+  const list = document.getElementById('contactsList');
+  const mcids = Object.keys(chatState.chats);
+
+  if (mcids.length === 0) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <div class="title">Aún no tienes contactos</div>
+        <div class="sub">Busca a alguien por su MCID, número o nombre para empezar a chatear.</div>
+      </div>
+    `;
+    return;
+  }
+
+  list.innerHTML = '<div class="section-title">Contactos</div>';
+  for (const mcid of mcids) {
+    const chat = chatState.chats[mcid];
+    const name = getDisplayName(mcid);
+    const avatar = chat.avatar_url
+      ? `<img src="${chat.avatar_url}" alt="">`
+      : getInitials(name);
+
+    const item = document.createElement('div');
+    item.className = 'contact-item';
+    item.innerHTML = `
+      <div class="avatar">${avatar}</div>
+      <div class="contact-info">
+        <div class="contact-name">${escapeHtml(name)}</div>
+        <div class="contact-sub">${escapeHtml(chat.virtual_number || mcid)}</div>
+      </div>
+      <svg class="contact-arrow" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+    `;
+    item.onclick = () => openChat(mcid);
+    list.appendChild(item);
+  }
+}
+
+function onSearchInput(e) {
+  const query = e.target.value.trim();
+  clearTimeout(chatState.searchTimeout);
+  if (query.length < 2) {
+    renderContacts();
+    return;
+  }
+  chatState.searchTimeout = setTimeout(() => performSearch(query), 400);
+}
+
+async function performSearch(query) {
+  const list = document.getElementById('contactsList');
+  list.innerHTML = '<div class="loading-state"><div class="spinner"></div><span>Buscando...</span></div>';
+
+  try {
+    const res = await api('/users/search/' + encodeURIComponent(query));
+    if (!res.ok) {
+      list.innerHTML = '<div class="empty-state"><div class="title">Error al buscar</div></div>';
+      return;
+    }
+    const data = await res.json();
+    const results = data.results || [];
+    chatState.searchResults = results;
+
+    if (results.length === 0) {
+      list.innerHTML = `
+        <div class="empty-state">
+          <div class="title">Sin resultados</div>
+          <div class="sub">No encontramos usuarios que coincidan con "${escapeHtml(query)}"</div>
+        </div>
+      `;
+      return;
+    }
+
+    list.innerHTML = '<div class="section-title">Resultados</div>';
+    for (const u of results) {
+      const existingContact = chatState.contacts[u.mcid];
+      const name = existingContact && existingContact.alias ? existingContact.alias : (u.display_name || u.virtual_number || u.mcid);
+      const avatar = u.avatar_url
+        ? `<img src="${u.avatar_url}" alt="">`
+        : getInitials(name);
+
+      const item = document.createElement('div');
+      item.className = 'contact-item';
+      item.innerHTML = `
+        <div class="avatar">${avatar}</div>
+        <div class="contact-info">
+          <div class="contact-name">${escapeHtml(name)}</div>
+          <div class="contact-sub">${escapeHtml(u.virtual_number || u.mcid)}</div>
+        </div>
+        <svg class="contact-arrow" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+      `;
+      item.onclick = () => openAddModal(u);
+      list.appendChild(item);
+    }
+  } catch (e) {
+    list.innerHTML = '<div class="empty-state"><div class="title">Error de conexión</div></div>';
+  }
+}
+
+function openAddModal(user) {
+  chatState.selectedUser = user;
+  const modal = document.getElementById('addContactModal');
+  const name = user.display_name || user.virtual_number || user.mcid;
+  const avatar = user.avatar_url
+    ? `<img src="${user.avatar_url}" alt="">`
+    : getInitials(name);
+
+  document.getElementById('modalAvatar').innerHTML = avatar;
+  document.getElementById('modalTitle').textContent = name;
+  document.getElementById('modalSub').textContent = user.virtual_number || user.mcid;
+
+  const existing = chatState.contacts[user.mcid];
+  document.getElementById('aliasInput').value = existing && existing.alias ? existing.alias : '';
+  document.getElementById('modalError').textContent = '';
+  modal.classList.add('show');
+  setTimeout(() => document.getElementById('aliasInput').focus(), 100);
+}
+
+function closeAddModal() {
+  document.getElementById('addContactModal').classList.remove('show');
+  chatState.selectedUser = null;
+}
+
+async function saveContactAlias() {
+  const user = chatState.selectedUser;
+  if (!user) return;
+
+  const alias = document.getElementById('aliasInput').value.trim();
+  const error = document.getElementById('modalError');
+  const btn = document.getElementById('addContactBtn');
+
+  if (!alias) {
+    error.textContent = 'El nombre es obligatorio';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+
+  if (!chatState.contacts[user.mcid]) {
+    chatState.contacts[user.mcid] = {
+      alias: alias,
+      isFavorite: false,
+      isPinned: false,
+      isUnread: false,
+      isSelected: false
+    };
+  } else {
+    chatState.contacts[user.mcid].alias = alias;
+  }
+
+  chatState.chats[user.mcid] = {
+    mcid: user.mcid,
+    virtual_number: user.virtual_number,
+    display_name: user.display_name,
+    avatar_url: user.avatar_url
+  };
+
+  await saveLocal('contacts.json', chatState.contacts);
+  await saveLocal('chats_cache.json', chatState.chats);
+
+  btn.disabled = false;
+  btn.textContent = 'Guardar';
+  closeAddModal();
+  showToast('Contacto guardado');
+  openChat(user.mcid);
+}
+
+function openChat(mcid) {
+  if (window.parent && window.parent !== window) {
+    window.parent.postMessage({ type: 'open-chat', mcid }, '*');
+    window.parent.postMessage({ type: 'close-new-chat' }, '*');
+  } else {
+    window.location.href = '/chat?mcid=' + encodeURIComponent(mcid);
+  }
+}
+
+document.getElementById('addContactModal').addEventListener('click', (e) => {
+  if (e.target.id === 'addContactModal') closeAddModal();
+});
+
+window.addEventListener('message', (event) => {
+  const data = event.data;
+  if (!data || typeof data !== 'object') return;
+  if (data.type === 'theme-changed') {
+    document.documentElement.classList.remove('theme-system', 'theme-light', 'theme-dark');
+    document.documentElement.classList.add('theme-' + data.theme);
+  }
+});
+
+bootstrap();
+</script>
+</body>
+</html>
