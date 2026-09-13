@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ajustes</title>
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+:root {
+  --bg-main: #ffffff;
+  --bg-card: #ffffff;
+  --bg-hover: #f3f4f6;
+  --bg-input: #f2f4f7;
+  --border-color: #eeeeee;
+  --border-input: #e6e8ec;
+  --text-main: #1f2937;
+  --text-sub: #6b7280;
+  --text-muted: #9ca3af;
+  --accent: #2563eb;
+  --accent-soft: rgba(37, 99, 235, 0.12);
+  --danger: #ef4444;
+}
+@media (prefers-color-scheme: dark) {
+  :root.theme-system {
+    --bg-main: #111827;
+    --bg-card: #1f2937;
+    --bg-hover: #374151;
+    --bg-input: #1f2937;
+    --border-color: #374151;
+    --border-input: #374151;
+    --text-main: #f9fafb;
+    --text-sub: #9ca3af;
+    --text-muted: #6b7280;
+    --accent: #3b82f6;
+    --accent-soft: rgba(59, 130, 246, 0.18);
+    --danger: #ef4444;
+  }
+}
+:root.theme-dark {
+  --bg-main: #111827;
+  --bg-card: #1f2937;
+  --bg-hover: #374151;
+  --bg-input: #1f2937;
+  --border-color: #374151;
+  --border-input: #374151;
+  --text-main: #f9fafb;
+  --text-sub: #9ca3af;
+  --text-muted: #6b7280;
+  --accent: #3b82f6;
+  --accent-soft: rgba(59, 130, 246, 0.18);
+  --danger: #ef4444;
+}
+:root.theme-light {
+  --bg-main: #ffffff;
+  --bg-card: #ffffff;
+  --bg-hover: #f3f4f6;
+  --bg-input: #f2f4f7;
+  --border-color: #eeeeee;
+  --border-input: #e6e8ec;
+  --text-main: #1f2937;
+  --text-sub: #6b7280;
+  --text-muted: #9ca3af;
+  --accent: #2563eb;
+  --accent-soft: rgba(37, 99, 235, 0.12);
+  --danger: #ef4444;
+}
+html, body {
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  transition: background-color 0.2s, color 0.2s;
+}
+.settings-container {
+  width: 100%;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+.settings-header {
+  height: 60px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background-color: var(--bg-main);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+  z-index: 10;
+}
+.back-btn {
+  background: none;
+  border: none;
+  color: var(--text-main);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 50%;
+  transition: background 0.15s;
+}
+.back-btn:active {
+  background-color: var(--bg-hover);
+}
+.back-btn svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+.header-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.pages-wrapper {
+  flex: 1;
+  display: flex;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+  height: 100%;
+}
+.page {
+  min-width: 100%;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  background-color: var(--bg-main);
+}
+.page-inner {
+  padding: 8px 0;
+}
+.setting-item {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  gap: 16px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-color);
+  transition: background 0.15s;
+}
+.setting-item:active {
+  background-color: var(--bg-hover);
+}
+.setting-item.danger .setting-title {
+  color: var(--danger);
+}
+.setting-item.danger .setting-icon {
+  fill: var(--danger);
+}
+.setting-icon {
+  width: 24px;
+  height: 24px;
+  fill: var(--text-sub);
+  flex-shrink: 0;
+}
+.setting-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.setting-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+.setting-sub {
+  font-size: 13px;
+  color: var(--text-sub);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chevron {
+  width: 20px;
+  height: 20px;
+  fill: var(--text-muted);
+  flex-shrink: 0;
+}
+.section-block {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+.section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-sub);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+.storage-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  font-size: 15px;
+  color: var(--text-main);
+}
+.storage-row .value {
+  font-weight: 600;
+  color: var(--accent);
+}
+.storage-bar {
+  height: 8px;
+  background-color: var(--bg-input);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+.storage-bar-fill {
+  height: 100%;
+  background-color: var(--accent);
+  border-radius: 4px;
+  transition: width 0.4s;
+  width: 0%;
+}
+.btn-block {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s, background 0.15s;
+  margin-top: 12px;
+}
+.btn-block:active {
+  transform: scale(0.97);
+}
+.btn-block.primary {
+  background-color: var(--accent);
+  color: #ffffff;
+}
+.btn-block.danger {
+  background-color: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+.btn-block:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.theme-option-block {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-color);
+  transition: background 0.15s;
+}
+.theme-option-block:active {
+  background-color: var(--bg-hover);
+}
+.theme-radio {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--border-input);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 0.2s;
+}
+.theme-radio.active {
+  border-color: var(--accent);
+}
+.theme-radio.active::after {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: var(--accent);
+}
+.theme-label {
+  font-size: 16px;
+  color: var(--text-main);
+  font-weight: 500;
+}
+.profile-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 20px 24px 20px;
+  gap: 16px;
+}
+.profile-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: linear-gradient(135deg, #002D62, #CE1126);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 40px;
+  font-weight: 700;
+  border: 3px solid var(--accent);
+}
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.profile-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.btn-small {
+  padding: 10px 18px;
+  border-radius: 12px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s, background 0.15s;
+}
+.btn-small:active {
+  transform: scale(0.96);
+}
+.btn-small.primary {
+  background-color: var(--accent);
+  color: #ffffff;
+}
+.btn-small.danger {
+  background-color: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+.field-group {
+  padding: 8px 20px 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+.field-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-sub);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  display: block;
+}
+.input-wrap {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--border-input);
+  background-color: var(--bg-input);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: border-color 0.2s;
+}
+.input-wrap:focus-within {
+  border-color: var(--accent);
+}
+.input-wrap input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-main);
+  font-size: 16px;
+  font-family: inherit;
+  -webkit-user-select: text;
+  user-select: text;
+  min-width: 0;
+}
+.copy-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-input);
+  gap: 10px;
+}
+.copy-field .value {
+  font-size: 14px;
+  color: var(--text-main);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: 'Courier New', monospace;
+  -webkit-user-select: text;
+  user-select: text;
+  flex: 1;
+  min-width: 0;
+}
+.copy-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.copy-btn:active {
+  background-color: var(--bg-hover);
+}
+.copy-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+.error-text {
+  font-size: 13px;
+  color: var(--danger);
+  text-align: center;
+  min-height: 18px;
+  margin-top: 8px;
+  padding: 0 20px;
+}
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background-color: rgba(0, 0, 0, 0.85);
+  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s, transform 0.25s;
+  z-index: 2000;
+  white-space: nowrap;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+</style>
+</head>
+<body>
+
+<div class="settings-container" id="settingsContainer">
+  <div class="settings-header">
+    <button class="back-btn" id="backBtn">
+      <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+    </button>
+    <div class="header-title" id="headerTitle">Ajustes</div>
+  </div>
+
+  <div class="pages-wrapper" id="pagesWrapper">
+    <div class="page" data-page="main">
+      <div class="page-inner">
+        <div class="setting-item" onclick="goToPage('storage')">
+          <svg class="setting-icon" viewBox="0 0 24 24"><path d="M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-4H2v4zm2-3h2v2H4v-2z"/></svg>
+          <div class="setting-info">
+            <div class="setting-title">Almacenamiento</div>
+            <div class="setting-sub" id="storageSub">Calculando...</div>
+          </div>
+          <svg class="chevron" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+        </div>
+
+        <div class="setting-item" onclick="goToPage('theme')">
+          <svg class="setting-icon" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8z"/></svg>
+          <div class="setting-info">
+            <div class="setting-title">Diseño</div>
+            <div class="setting-sub" id="themeSub">Tema actual: Sistema</div>
+          </div>
+          <svg class="chevron" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+        </div>
+
+        <div class="setting-item" onclick="goToPage('profile')">
+          <svg class="setting-icon" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+          <div class="setting-info">
+            <div class="setting-title">Perfil</div>
+            <div class="setting-sub">Ver y editar tu perfil</div>
+          </div>
+          <svg class="chevron" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+        </div>
+
+        <div class="setting-item danger" onclick="confirmLogout()">
+          <svg class="setting-icon" viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+          <div class="setting-info">
+            <div class="setting-title">Cerrar sesión</div>
+            <div class="setting-sub">Salir de tu cuenta en este dispositivo</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page" data-page="storage">
+      <div class="page-inner">
+        <div class="section-block">
+          <div class="section-title">Almacenamiento local</div>
+          <div class="storage-row">
+            <span>Datos guardados</span>
+            <span class="value" id="localValue">--</span>
+          </div>
+          <div class="storage-bar">
+            <div class="storage-bar-fill" id="localBar"></div>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <div class="section-title">Almacenamiento del navegador</div>
+          <div class="storage-row">
+            <span>Usado</span>
+            <span class="value" id="originUsed">--</span>
+          </div>
+          <div class="storage-row">
+            <span>Cuota total</span>
+            <span class="value" id="originQuota">--</span>
+          </div>
+          <div class="storage-bar">
+            <div class="storage-bar-fill" id="originBar"></div>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <div class="section-title">Multimedia</div>
+          <div class="storage-row">
+            <span>Archivos multimedia</span>
+            <span class="value" id="mediaValue">--</span>
+          </div>
+          <div class="storage-row">
+            <span>Cantidad</span>
+            <span class="value" id="mediaCount">--</span>
+          </div>
+          <button class="btn-block danger" id="clearMediaBtn" onclick="clearMedia()">Borrar multimedia</button>
+        </div>
+
+        <div class="section-block">
+          <div class="section-title">Caché</div>
+          <button class="btn-block primary" id="clearCacheBtn" onclick="clearCache()">Limpiar caché</button>
+        </div>
+
+        <div class="error-text" id="storageError"></div>
+      </div>
+    </div>
+
+    <div class="page" data-page="theme">
+      <div class="page-inner">
+        <div class="theme-option-block" onclick="selectTheme('system')">
+          <div class="theme-radio" data-theme="system"></div>
+          <div class="theme-label">Predeterminado del sistema</div>
+        </div>
+        <div class="theme-option-block" onclick="selectTheme('light')">
+          <div class="theme-radio" data-theme="light"></div>
+          <div class="theme-label">Claro</div>
+        </div>
+        <div class="theme-option-block" onclick="selectTheme('dark')">
+          <div class="theme-radio" data-theme="dark"></div>
+          <div class="theme-label">Oscuro</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page" data-page="profile">
+      <div class="page-inner">
+        <div class="profile-header">
+          <div class="profile-avatar" id="profileAvatar">
+            <span id="profileAvatarInitial">?</span>
+          </div>
+          <div class="profile-actions">
+            <button class="btn-small primary" onclick="pickAvatar()">Cambiar foto</button>
+            <button class="btn-small danger" onclick="removeAvatar()">Eliminar foto</button>
+          </div>
+          <input type="file" id="avatarInput" accept="image/*" style="display:none">
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Nombre</label>
+          <div class="input-wrap">
+            <input type="text" id="displayNameInput" maxlength="50" placeholder="Tu nombre">
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Tu ID (MCID)</label>
+          <div class="copy-field">
+            <span class="value" id="mcidValue">--</span>
+            <button class="copy-btn" onclick="copyText('mcidValue')" title="Copiar">
+              <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Tu número</label>
+          <div class="copy-field">
+            <span class="value" id="numberValue">--</span>
+            <button class="copy-btn" onclick="copyText('numberValue')" title="Copiar">
+              <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="field-group" style="border-bottom:none">
+          <button class="btn-block primary" id="saveProfileBtn" onclick="saveProfile()">Guardar cambios</button>
+        </div>
+
+        <div class="error-text" id="profileError"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const PAGES = ['main', 'storage', 'theme', 'profile'];
+const TITLES = {
+  main: 'Ajustes',
+  storage: 'Almacenamiento',
+  theme: 'Diseño',
+  profile: 'Perfil'
+};
+
+const settingsState = {
+  currentPage: 'main',
+  user: null,
+  session: null,
+  settings: { theme: 'system' },
+  fileHandle: null,
+  hasFileSystem: false,
+  mediaFiles: []
+};
+
+function showToast(text) {
+  const toast = document.getElementById('toast');
+  toast.textContent = text;
+  toast.classList.add('show');
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+function applyTheme(theme) {
+  document.documentElement.classList.remove('theme-system', 'theme-light', 'theme-dark');
+  document.documentElement.classList.add('theme-' + theme);
+  document.querySelectorAll('.theme-radio').forEach(r => {
+    r.classList.toggle('active', r.dataset.theme === theme);
+  });
+  const labels = { system: 'Predeterminado del sistema', light: 'Claro', dark: 'Oscuro' };
+  const sub = document.getElementById('themeSub');
+  if (sub) sub.textContent = 'Tema actual: ' + (labels[theme] || 'Sistema');
+}
+
+async function loadLocal(filename, fallback = null) {
+  if (settingsState.hasFileSystem && settingsState.fileHandle) {
+    try {
+      const fh = await settingsState.fileHandle.getFileHandle(filename, { create: true });
+      const file = await fh.getFile();
+      const text = await file.text();
+      if (!text) return fallback;
+      return JSON.parse(text);
+    } catch (e) {}
+  }
+  try {
+    const raw = localStorage.getItem('mc_' + filename);
+    if (!raw) return fallback;
+    return JSON.parse(raw);
+  } catch (e) {
+    return fallback;
+  }
+}
+
+async function saveLocal(filename, data) {
+  const text = JSON.stringify(data, null, 2);
+  if (settingsState.hasFileSystem && settingsState.fileHandle) {
+    try {
+      const fh = await settingsState.fileHandle.getFileHandle(filename, { create: true });
+      const w = await fh.createWritable();
+      await w.write(text);
+      await w.close();
+      return true;
+    } catch (e) {}
+  }
+  try {
+    localStorage.setItem('mc_' + filename, text);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+async function api(path, options = {}) {
+  const headers = options.headers || {};
+  if (!(options.body instanceof FormData)) {
+    headers['Content-Type'] = headers['Content-Type'] || 'application/json';
+  }
+  if (settingsState.session && settingsState.session.token) {
+    headers['Authorization'] = 'Bearer ' + settingsState.session.token;
+  }
+  const res = await fetch('/api' + path, { ...options, headers });
+  return res;
+}
+
+function goToPage(name) {
+  if (!PAGES.includes(name)) return;
+  const wrapper = document.getElementById('pagesWrapper');
+  const container = document.querySelector('.settings-container');
+  const width = container.clientWidth;
+  const index = PAGES.indexOf(name);
+  wrapper.style.transform = `translateX(-${index * width}px)`;
+  document.getElementById('headerTitle').textContent = TITLES[name] || 'Ajustes';
+  settingsState.currentPage = name;
+  if (name === 'storage') loadStorageInfo();
+  if (name === 'profile') loadProfileInfo();
+}
+
+document.getElementById('backBtn').addEventListener('click', () => {
+  if (settingsState.currentPage !== 'main') {
+    goToPage('main');
+  } else {
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: 'close-settings' }, '*');
+    } else {
+      window.location.href = '/main';
+    }
+  }
+});
+
+async function selectTheme(theme) {
+  settingsState.settings.theme = theme;
+  applyTheme(theme);
+  await saveLocal('settings.json', { theme });
+  showToast('Tema actualizado');
+  if (window.parent && window.parent !== window) {
+    window.parent.postMessage({ type: 'theme-changed', theme }, '*');
+  }
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+  if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+  return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+}
+
+async function loadStorageInfo() {
+  const error = document.getElementById('storageError');
+  error.textContent = '';
+
+  let localBytes = 0;
+  if (settingsState.hasFileSystem && settingsState.fileHandle) {
+    try {
+      const fileHandle = await settingsState.fileHandle.getFileHandle('session.json', { create: true });
+      const file = await fileHandle.getFile();
+      localBytes += file.size;
+    } catch (e) {}
+  } else {
+    for (const key in localStorage) {
+      if (localStorage.hasOwnProperty(key) && key.startsWith('mc_')) {
+        localBytes += (localStorage[key].length + key.length) * 2;
+      }
+    }
+  }
+  document.getElementById('localValue').textContent = formatBytes(localBytes);
+
+  let originUsed = 0, originQuota = 1;
+  if (navigator.storage && navigator.storage.estimate) {
+    try {
+      const est = await navigator.storage.estimate();
+      originUsed = est.usage || 0;
+      originQuota = est.quota || 1;
+      document.getElementById('originUsed').textContent = formatBytes(originUsed);
+      document.getElementById('originQuota').textContent = formatBytes(originQuota);
+      const pct = Math.min((originUsed / originQuota) * 100, 100);
+      document.getElementById('originBar').style.width = pct + '%';
+      document.getElementById('localBar').style.width = Math.min((localBytes / originQuota) * 100, 100) + '%';
+    } catch (e) {
+      document.getElementById('originUsed').textContent = 'No disponible';
+      document.getElementById('originQuota').textContent = 'No disponible';
+    }
+  } else {
+    document.getElementById('originUsed').textContent = 'No disponible';
+    document.getElementById('originQuota').textContent = 'No disponible';
+  }
+
+  let mediaBytes = 0, mediaCount = 0;
+  if (settingsState.hasFileSystem && settingsState.fileHandle) {
+    try {
+      const mediaDir = await settingsState.fileHandle.getDirectoryHandle('media', { create: false });
+      for await (const entry of mediaDir.values()) {
+        if (entry.kind === 'file') {
+          const file = await entry.getFile();
+          mediaBytes += file.size;
+          mediaCount++;
+        }
+      }
+    } catch (e) {}
+  }
+  document.getElementById('mediaValue').textContent = formatBytes(mediaBytes);
+  document.getElementById('mediaCount').textContent = mediaCount + ' archivos';
+  settingsState.mediaFiles = mediaCount;
+}
+
+async function clearMedia() {
+  if (settingsState.mediaFiles === 0) {
+    showToast('No hay multimedia');
+    return;
+  }
+  if (!settingsState.hasFileSystem || !settingsState.fileHandle) {
+    showToast('No disponible');
+    return;
+  }
+  try {
+    await settingsState.fileHandle.removeEntry('media', { recursive: true });
+    showToast('Multimedia eliminada');
+    await loadStorageInfo();
+  } catch (e) {
+    showToast('Error al borrar');
+  }
+}
+
+async function clearCache() {
+  try {
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    }
+    showToast('Caché limpiada');
+  } catch (e) {
+    showToast('Error al limpiar');
+  }
+}
+
+async function loadProfileInfo() {
+  if (!settingsState.user) {
+    const session = await loadLocal('session.json', null);
+    if (session && session.user) {
+      settingsState.user = session.user;
+      settingsState.session = session;
+    }
+  }
+  if (!settingsState.user) return;
+
+  const user = settingsState.user;
+  document.getElementById('displayNameInput').value = user.display_name || '';
+  document.getElementById('mcidValue').textContent = user.mcid || '--';
+  document.getElementById('numberValue').textContent = user.virtual_number || '--';
+
+  const avatar = document.getElementById('profileAvatar');
+  const initial = document.getElementById('profileAvatarInitial');
+  const existingImg = avatar.querySelector('img');
+  if (existingImg) existingImg.remove();
+
+  if (user.avatar_url) {
+    const img = document.createElement('img');
+    img.src = user.avatar_url;
+    avatar.appendChild(img);
+    initial.style.display = 'none';
+  } else {
+    initial.textContent = (user.display_name || user.username || '?').charAt(0).toUpperCase();
+    initial.style.display = 'block';
+  }
+}
+
+function pickAvatar() {
+  document.getElementById('avatarInput').click();
+}
+
+document.getElementById('avatarInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    document.getElementById('profileError').textContent = 'Solo imágenes';
+    return;
+  }
+  document.getElementById('profileError').textContent = '';
+  const cropped = await cropToSquare(file, 500);
+  await uploadAvatar(cropped.blob);
+});
+
+function cropToSquare(file, size) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      const min = Math.min(img.width, img.height);
+      const sx = (img.width - min) / 2;
+      const sy = (img.height - min) / 2;
+      ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size);
+      canvas.toBlob((blob) => {
+        URL.revokeObjectURL(url);
+        resolve({ blob });
+      }, 'image/jpeg', 0.9);
+    };
+    img.src = url;
+  });
+}
+
+async function uploadAvatar(blob) {
+  if (!settingsState.session) return;
+  const form = new FormData();
+  form.append('file', blob, 'avatar.jpg');
+  try {
+    const res = await fetch('/api/users/me/avatar', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + settingsState.session.token },
+      body: form
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      document.getElementById('profileError').textContent = data.error || 'Error subiendo foto';
+      return;
+    }
+    settingsState.user.avatar_url = data.avatar_url;
+    const session = settingsState.session;
+    session.user = settingsState.user;
+    await saveLocal('session.json', session);
+    await loadProfileInfo();
+    showToast('Foto actualizada');
+  } catch (e) {
+    document.getElementById('profileError').textContent = 'Error de conexión';
+  }
+}
+
+async function removeAvatar() {
+  if (!settingsState.session) return;
+  if (!settingsState.user.avatar_url) {
+    showToast('No tienes foto');
+    return;
+  }
+  try {
+    const res = await fetch('/api/users/me/avatar', {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + settingsState.session.token }
+    });
+    if (!res.ok) {
+      showToast('Error al eliminar');
+      return;
+    }
+    settingsState.user.avatar_url = null;
+    const session = settingsState.session;
+    session.user = settingsState.user;
+    await saveLocal('session.json', session);
+    await loadProfileInfo();
+    showToast('Foto eliminada');
+  } catch (e) {
+    showToast('Error de conexión');
+  }
+}
+
+async function saveProfile() {
+  if (!settingsState.session) return;
+  const btn = document.getElementById('saveProfileBtn');
+  const error = document.getElementById('profileError');
+  error.textContent = '';
+
+  const displayName = document.getElementById('displayNameInput').value.trim();
+  if (!displayName) {
+    error.textContent = 'El nombre es obligatorio';
+    return;
+  }
+  if (displayName === settingsState.user.display_name) {
+    showToast('Sin cambios');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+
+  try {
+    const res = await fetch('/api/users/me', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + settingsState.session.token
+      },
+      body: JSON.stringify({ display_name: displayName })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      error.textContent = data.error || 'Error guardando';
+      btn.disabled = false;
+      btn.textContent = 'Guardar cambios';
+      return;
+    }
+    settingsState.user.display_name = displayName;
+    const session = settingsState.session;
+    session.user = settingsState.user;
+    await saveLocal('session.json', session);
+    showToast('Perfil actualizado');
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: 'profile-updated', user: settingsState.user }, '*');
+    }
+  } catch (e) {
+    error.textContent = 'Error de conexión';
+  }
+  btn.disabled = false;
+  btn.textContent = 'Guardar cambios';
+}
+
+function copyText(elementId) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+  const text = el.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('Copiado');
+  }).catch(() => {
+    showToast('Error al copiar');
+  });
+}
+
+function confirmLogout() {
+  const confirmed = confirm('¿Cerrar sesión en este dispositivo?');
+  if (!confirmed) return;
+  performLogout();
+}
+
+async function performLogout() {
+  try {
+    if (settingsState.session && settingsState.session.token) {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + settingsState.session.token }
+      });
+    }
+  } catch (e) {}
+
+  if (settingsState.hasFileSystem && settingsState.fileHandle) {
+    try {
+      await settingsState.fileHandle.removeEntry('session.json');
+      await settingsState.fileHandle.removeEntry('contacts.json');
+      await settingsState.fileHandle.removeEntry('settings.json');
+      await settingsState.fileHandle.removeEntry('keys.json');
+      await settingsState.fileHandle.removeEntry('filehandle.json');
+    } catch (e) {}
+  } else {
+    const keys = ['mc_session.json', 'mc_contacts.json', 'mc_settings.json', 'mc_keys.json', 'mc_filehandle.json'];
+    keys.forEach(k => localStorage.removeItem(k));
+  }
+
+  window.location.href = '/';
+}
+
+async function boot() {
+  if (!('showDirectoryPicker' in window)) {
+    settingsState.hasFileSystem = false;
+  } else {
+    const saved = await loadLocal('filehandle.json', null);
+    if (saved && saved.picked) {
+      settingsState.hasFileSystem = false;
+    }
+  }
+
+  const settings = await loadLocal('settings.json', { theme: 'system' });
+  settingsState.settings = settings;
+  applyTheme(settings.theme || 'system');
+
+  const session = await loadLocal('session.json', null);
+  if (session) {
+    settingsState.session = session;
+    settingsState.user = session.user || null;
+  }
+
+  loadStorageInfo();
+
+  window.addEventListener('resize', () => {
+    const width = document.querySelector('.settings-container').clientWidth;
+    const index = PAGES.indexOf(settingsState.currentPage);
+    document.getElementById('pagesWrapper').style.transform = `translateX(-${index * width}px)`;
+  });
+}
+
+boot();
+</script>
+
+</body>
+</html>
