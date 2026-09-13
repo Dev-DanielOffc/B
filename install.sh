@@ -53,9 +53,6 @@ if lsof -Pi :80 -sTCP:LISTEN -t >/dev/null 2>&1; then
   systemctl stop apache2 2>/dev/null || true
   systemctl disable apache2 2>/dev/null || true
 fi
-if lsof -Pi :443 -sTCP:LISTEN -t >/dev/null 2>&1; then
-  warn "El puerto 443 esta en uso. Verifica que no haya otro servicio."
-fi
 
 log "Instalando Node.js 20..."
 if ! command -v node &> /dev/null; then
@@ -84,8 +81,7 @@ fi
 cd "$PROJECT_DIR"
 
 log "Creando directorios necesarios..."
-mkdir -p data uploads uploads/avatars uploads/temp logs public
-mkdir -p public/assets
+mkdir -p data uploads uploads/avatars uploads/temp logs public public/assets
 
 log "Creando archivo .env..."
 cat > .env <<EOF
@@ -115,30 +111,60 @@ chown -R "$APP_USER":"$APP_USER" "$PROJECT_DIR"
 chmod -R 755 "$PROJECT_DIR"
 chmod -R 775 "$PROJECT_DIR/data" "$PROJECT_DIR/uploads" "$PROJECT_DIR/logs"
 
-log "Configurando nginx..."
-sed "s/DOMAIN_PLACEHOLDER/$DOMAIN/g" "$PROJECT_DIR/nginx.conf.template" > /etc/nginx/sites-available/messageschat
+log "Configurando nginx (HTTP solo para validacion)..."
+cat > /etc/nginx/sites-available/messageschat <<EOF
+server {
+    listen 80;
+    listen [::]:80;
+    server_name $DOMAIN;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:$APP_PORT;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_cache_bypass \$http_upgrade;
+        proxy_read_timeout 86400;
+        proxy_send_timeout 86400;
+    }
+}
+EOF
 
 mkdir -p /var/www/certbot
 
 ln -sf /etc/nginx/sites-available/messageschat /etc/nginx/sites-enabled/messageschat
 rm -f /etc/nginx/sites-enabled/default
 
-nginx -t || err "Error en configuracion de nginx"
-
-log "Reiniciando nginx..."
-systemctl restart nginx
-systemctl enable nginx
-
-log "Obteniendo certificado SSL..."
-certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos -m "$EMAIL" --redirect || warn "Certbot fallo. Configura SSL manualmente."
-
-log "Iniciando app con PM2..."
+log "Iniciando app con PM2 antes de nginx..."
 cd "$PROJECT_DIR"
 sudo -u "$APP_USER" pm2 start ecosystem.config.cjs || err "Error iniciando PM2"
-
 sudo -u "$APP_USER" pm2 save
 
 env PATH=$PATH:/usr/bin pm2 startup systemd -u "$APP_USER" --hp "/home/$APP_USER" || warn "Configura pm2 startup manualmente"
+
+log "Reiniciando nginx..."
+nginx -t || err "Error en configuracion de nginx HTTP"
+systemctl restart nginx
+systemctl enable nginx
+
+log "Esperando a que la app este lista..."
+sleep 5
+
+log "Obteniendo certificado SSL..."
+if certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos -m "$EMAIL" --redirect; then
+  ok "Certificado SSL obtenido correctamente"
+else
+  warn "Certbot fallo. La app funciona en HTTP pero sin SSL."
+  warn "Revisa que el dominio $DOMAIN apunte a este servidor."
+fi
 
 log "Configurando firewall..."
 ufw allow 22/tcp
