@@ -9,6 +9,15 @@ export async function verifyPassword(password, hash) {
   return bcrypt.compare(password, hash);
 }
 
+export async function hashPin(pin) {
+  return bcrypt.hash(pin, 10);
+}
+
+export async function verifyPin(pin, hash) {
+  if (!hash) return false;
+  return bcrypt.compare(pin, hash);
+}
+
 export function generateToken(bytes = 32) {
   return crypto.randomBytes(bytes).toString('hex');
 }
