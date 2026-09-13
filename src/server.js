@@ -11,6 +11,7 @@ import { config } from './config.js';
 import './db/index.js';
 import { startCleanup } from './services/cleanup.js';
 import { registerWebSocket } from './ws/handler.js';
+import { errorHandler } from './utils/errors.js';
 
 import authRoutes from './routes/auth.js';
 import numbersRoutes from './routes/numbers.js';
@@ -20,6 +21,9 @@ import messagesRoutes from './routes/messages.js';
 import keysRoutes from './routes/keys.js';
 import presenceRoutes from './routes/presence.js';
 import healthRoutes from './routes/health.js';
+import chatRoutes from './routes/chat.js';
+import blocksRoutes from './routes/blocks.js';
+import uploadRoutes from './routes/upload.js';
 
 const fastify = Fastify({
   logger: false,
@@ -78,8 +82,13 @@ async function bootstrap() {
   await fastify.register(keysRoutes, { prefix: '/api/keys' });
   await fastify.register(presenceRoutes, { prefix: '/api/presence' });
   await fastify.register(healthRoutes, { prefix: '/api/health' });
+  await fastify.register(chatRoutes, { prefix: '/api/chat' });
+  await fastify.register(blocksRoutes, { prefix: '/api/blocks' });
+  await fastify.register(uploadRoutes, { prefix: '/api/upload' });
 
   registerWebSocket(fastify);
+
+  fastify.setErrorHandler(errorHandler);
 
   fastify.setNotFoundHandler((request, reply) => {
     if (request.url.startsWith('/api/')) {
