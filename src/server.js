@@ -9,6 +9,17 @@ import fs from 'fs';
 import path from 'path';
 import { config } from './config.js';
 import './db/index.js';
+import { startCleanup } from './services/cleanup.js';
+import { registerWebSocket } from './ws/handler.js';
+
+import authRoutes from './routes/auth.js';
+import numbersRoutes from './routes/numbers.js';
+import mcidRoutes from './routes/mcid.js';
+import usersRoutes from './routes/users.js';
+import messagesRoutes from './routes/messages.js';
+import keysRoutes from './routes/keys.js';
+import presenceRoutes from './routes/presence.js';
+import healthRoutes from './routes/health.js';
 
 const fastify = Fastify({
   logger: false,
@@ -17,18 +28,10 @@ const fastify = Fastify({
 });
 
 async function bootstrap() {
-  if (!fs.existsSync(config.uploads.dir)) {
-    fs.mkdirSync(config.uploads.dir, { recursive: true });
-  }
-  if (!fs.existsSync(config.uploads.avatarsDir)) {
-    fs.mkdirSync(config.uploads.avatarsDir, { recursive: true });
-  }
-  if (!fs.existsSync(config.uploads.tempDir)) {
-    fs.mkdirSync(config.uploads.tempDir, { recursive: true });
-  }
-  if (!fs.existsSync(config.publicDir)) {
-    fs.mkdirSync(config.publicDir, { recursive: true });
-  }
+  if (!fs.existsSync(config.uploads.dir)) fs.mkdirSync(config.uploads.dir, { recursive: true });
+  if (!fs.existsSync(config.uploads.avatarsDir)) fs.mkdirSync(config.uploads.avatarsDir, { recursive: true });
+  if (!fs.existsSync(config.uploads.tempDir)) fs.mkdirSync(config.uploads.tempDir, { recursive: true });
+  if (!fs.existsSync(config.publicDir)) fs.mkdirSync(config.publicDir, { recursive: true });
 
   await fastify.register(cors, {
     origin: true,
@@ -47,8 +50,7 @@ async function bootstrap() {
 
   await fastify.register(rateLimit, {
     max: 300,
-    timeWindow: '1 minute',
-    allowList: []
+    timeWindow: '1 minute'
   });
 
   await fastify.register(websocket, {
@@ -65,17 +67,19 @@ async function bootstrap() {
   await fastify.register(staticFiles, {
     root: config.uploads.dir,
     prefix: '/u/',
-    decorateReply: false,
-    setHeaders: (res, filePath) => {
-      if (filePath.endsWith('.apk')) {
-        res.setHeader('Content-Type', 'application/vnd.android.package-archive');
-      }
-    }
+    decorateReply: false
   });
 
-  fastify.get('/api/health', async () => {
-    return { status: 'ok', timestamp: Date.now() };
-  });
+  await fastify.register(authRoutes, { prefix: '/api/auth' });
+  await fastify.register(numbersRoutes, { prefix: '/api/numbers' });
+  await fastify.register(mcidRoutes, { prefix: '/api/mcid' });
+  await fastify.register(usersRoutes, { prefix: '/api/users' });
+  await fastify.register(messagesRoutes, { prefix: '/api/messages' });
+  await fastify.register(keysRoutes, { prefix: '/api/keys' });
+  await fastify.register(presenceRoutes, { prefix: '/api/presence' });
+  await fastify.register(healthRoutes, { prefix: '/api/health' });
+
+  registerWebSocket(fastify);
 
   fastify.setNotFoundHandler((request, reply) => {
     if (request.url.startsWith('/api/')) {
@@ -96,6 +100,8 @@ async function bootstrap() {
     }
   });
 
+  startCleanup();
+
   try {
     await fastify.listen({ port: config.port, host: config.host });
     console.log(`MessagesChat backend online en puerto ${config.port}`);
@@ -104,6 +110,14 @@ async function bootstrap() {
     process.exit(1);
   }
 }
+
+process.on('SIGINT', () => {
+  fastify.close().then(() => process.exit(0));
+});
+
+process.on('SIGTERM', () => {
+  fastify.close().then(() => process.exit(0));
+});
 
 bootstrap();
 
