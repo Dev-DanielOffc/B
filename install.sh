@@ -45,7 +45,17 @@ apt-get update -y
 apt-get upgrade -y
 
 log "Instalando dependencias base..."
-apt-get install -y curl wget git build-essential nginx certbot python3-certbot-nginx ufw
+apt-get install -y curl wget git build-essential nginx certbot python3-certbot-nginx ufw rsync
+
+log "Verificando puertos en uso..."
+if lsof -Pi :80 -sTCP:LISTEN -t >/dev/null 2>&1; then
+  warn "El puerto 80 esta en uso. Deteniendo servicios conflictivos..."
+  systemctl stop apache2 2>/dev/null || true
+  systemctl disable apache2 2>/dev/null || true
+fi
+if lsof -Pi :443 -sTCP:LISTEN -t >/dev/null 2>&1; then
+  warn "El puerto 443 esta en uso. Verifica que no haya otro servicio."
+fi
 
 log "Instalando Node.js 20..."
 if ! command -v node &> /dev/null; then
@@ -64,12 +74,18 @@ log "Creando directorio del proyecto en $PROJECT_DIR..."
 mkdir -p "$PROJECT_DIR"
 
 log "Copiando archivos..."
-rsync -a --exclude='node_modules' --exclude='.git' --exclude='data' --exclude='uploads' --exclude='logs' "$CURRENT_DIR/" "$PROJECT_DIR/"
+if command -v rsync &> /dev/null; then
+  rsync -a --exclude='node_modules' --exclude='.git' --exclude='data' --exclude='uploads' --exclude='logs' "$CURRENT_DIR/" "$PROJECT_DIR/"
+else
+  cp -r "$CURRENT_DIR/." "$PROJECT_DIR/"
+  rm -rf "$PROJECT_DIR/node_modules" "$PROJECT_DIR/.git" "$PROJECT_DIR/data" "$PROJECT_DIR/uploads" "$PROJECT_DIR/logs"
+fi
 
 cd "$PROJECT_DIR"
 
 log "Creando directorios necesarios..."
 mkdir -p data uploads uploads/avatars uploads/temp logs public
+mkdir -p public/assets
 
 log "Creando archivo .env..."
 cat > .env <<EOF
@@ -109,6 +125,10 @@ rm -f /etc/nginx/sites-enabled/default
 
 nginx -t || err "Error en configuracion de nginx"
 
+log "Reiniciando nginx..."
+systemctl restart nginx
+systemctl enable nginx
+
 log "Obteniendo certificado SSL..."
 certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos -m "$EMAIL" --redirect || warn "Certbot fallo. Configura SSL manualmente."
 
@@ -119,10 +139,6 @@ sudo -u "$APP_USER" pm2 start ecosystem.config.cjs || err "Error iniciando PM2"
 sudo -u "$APP_USER" pm2 save
 
 env PATH=$PATH:/usr/bin pm2 startup systemd -u "$APP_USER" --hp "/home/$APP_USER" || warn "Configura pm2 startup manualmente"
-
-log "Reiniciando nginx..."
-systemctl restart nginx
-systemctl enable nginx
 
 log "Configurando firewall..."
 ufw allow 22/tcp
